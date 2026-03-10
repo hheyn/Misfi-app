@@ -107,6 +107,14 @@
     .trend-bar { border-radius: 3px 3px 0 0; min-height: 2px; width: 14px; transition: height .4s; }
     .trend-label { font-size: 9px; color: #a89060; margin-top: 4px; text-align: center; line-height: 1.4; }
 
+    /* Dashboard reminders */
+    #d-reminders:empty { display: none; }
+    .reminder-alert { background: #1a1a0a; border: 1px solid #f5c84266; border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; }
+    .reminder-alert .rem-title { font-size: 11px; font-weight: bold; color: #f5c842; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+    .reminder-alert .rem-item { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; border-bottom: 1px solid #2d2010; font-size: 13px; }
+    .reminder-alert .rem-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .reminder-alert .rem-item .rem-due { font-size: 11px; color: #f5c842; white-space: nowrap; flex-shrink: 0; }
+
     /* Notes */
     .note-row { background: #1a1a1a; border-radius: 8px; padding: 11px 13px; margin-bottom: 7px; border-left: 3px solid #f5c842; }
     .note-row .note-text { font-size: 13px; margin-bottom: 4px; }
@@ -193,6 +201,7 @@
 
   <!-- DASHBOARD -->
   <div id="tab-dashboard" class="tab active">
+    <div id="d-reminders"></div>
     <div class="cards">
       <div class="card" style="border:1px solid #4ade8033"><div class="card-icon">📈</div><div class="card-label">Ingresos</div><div class="card-val" style="color:#4ade80" id="d-income">—</div></div>
       <div class="card" style="border:1px solid #f8717133"><div class="card-icon">📉</div><div class="card-label">Gastos</div><div class="card-val" style="color:#f87171" id="d-expense">—</div></div>
@@ -599,6 +608,34 @@ function render() {
   document.getElementById('c-total-hec').textContent=fmt(totHec);
   document.getElementById('c-total-rom').textContent=fmt(totRom);
   document.getElementById('c-total').textContent=fmt(totAll);
+
+  // RECORDATORIOS DEL DÍA en Dashboard
+  const todayStr = now.toLocaleDateString('es-PY');
+  const todayDay = now.getDate();
+  const todayMonthName = MONTHS[now.getMonth()].toLowerCase();
+  const allNotes = noteList();
+  const todayNotes = allNotes.filter(n => {
+    if (!n.due) return false;
+    const d = n.due.toLowerCase();
+    // Coincide si contiene el día y el mes actual, o si dice "hoy"
+    return d === 'hoy' || (d.includes(String(todayDay)) && d.includes(todayMonthName));
+  });
+  const pendingNotes = allNotes.filter(n => n.due && !todayNotes.includes(n));
+  const remEl = document.getElementById('d-reminders');
+  let remHtml = '';
+  if (todayNotes.length) {
+    remHtml += `<div class="reminder-alert">
+      <div class="rem-title">🔔 Recordatorios de hoy — ${todayStr}</div>
+      ${todayNotes.map(n=>`<div class="rem-item"><span>📌 ${n.text}</span><span class="rem-due">${n.due}</span></div>`).join('')}
+    </div>`;
+  }
+  if (pendingNotes.length) {
+    remHtml += `<div class="reminder-alert" style="border-color:#a8906044">
+      <div class="rem-title" style="color:#a89060">📋 Próximos recordatorios</div>
+      ${pendingNotes.slice(0,3).map(n=>`<div class="rem-item"><span>${n.text}</span><span class="rem-due" style="color:#a89060">${n.due||'sin fecha'}</span></div>`).join('')}
+    </div>`;
+  }
+  remEl.innerHTML = remHtml;
 
   document.getElementById('i-list-title').textContent=`Ingresos — ${MONTHS[filterMonth]} ${filterYear}`;
   document.getElementById('i-list').innerHTML=fi.length?fi.slice().sort((a,b)=>new Date(b.date)-new Date(a.date)).map(inc=>{
