@@ -12,7 +12,11 @@
     body { font-family: Georgia, serif; background: #0f0f0f; color: #f5f0e8; min-height: 100vh; padding-bottom: 80px; }
     select, input, button { font-family: Georgia, serif; }
 
-    #header { background: linear-gradient(135deg, #1a1a1a 0%, #2d2010 100%); border-bottom: 1px solid #3d2f0a; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+    #sync-bar { background: #1a1a1a; text-align: center; font-size: 11px; padding: 5px; color: #a89060; border-bottom: 1px solid #222; }
+    #sync-bar.ok { color: #4ade80; }
+    #sync-bar.err { color: #f87171; }
+
+    #header { background: linear-gradient(135deg, #1a1a1a 0%, #2d2010 100%); border-bottom: 1px solid #3d2f0a; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 26px; z-index: 100; }
     #header h1 { font-size: 20px; color: #f5c842; letter-spacing: 1px; }
     #header .sub { font-size: 11px; color: #a89060; margin-top: 2px; }
     #header .total-label { font-size: 11px; color: #a89060; text-align: right; }
@@ -22,17 +26,17 @@
     #month-bar span { color: #a89060; font-size: 12px; white-space: nowrap; }
     #month-bar select { background: #2a2a2a; color: #f5f0e8; border: 1px solid #3d2f0a; border-radius: 6px; padding: 4px 8px; font-size: 13px; }
 
-    #nav { display: flex; background: #111; border-bottom: 1px solid #222; position: sticky; top: 57px; z-index: 99; }
-    .nav-btn { flex: 1; padding: 10px 4px; background: transparent; color: #a89060; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-size: 11px; font-family: Georgia, serif; transition: all .2s; }
+    #nav { display: flex; background: #111; border-bottom: 1px solid #222; }
+    .nav-btn { flex: 1; padding: 10px 2px; background: transparent; color: #a89060; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-size: 10px; font-family: Georgia, serif; transition: all .2s; }
     .nav-btn.active { background: #2d2010; color: #f5c842; border-bottom-color: #f5c842; }
-    .nav-btn .nav-icon { font-size: 18px; display: block; margin-bottom: 2px; }
+    .nav-btn .nav-icon { font-size: 17px; display: block; margin-bottom: 2px; }
 
     #content { padding: 14px; max-width: 700px; margin: 0 auto; }
-
     .tab { display: none; }
     .tab.active { display: block; }
 
-    .section-title { font-size: 12px; font-weight: bold; color: #f5c842; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; margin-top: 4px; border-bottom: 1px solid #2d2010; padding-bottom: 6px; }
+    .section-title { font-size: 12px; font-weight: bold; color: #f5c842; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; margin-top: 4px; border-bottom: 1px solid #2d2010; padding-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+    .add-link { font-size: 11px; color: #f5c842; background: #2d2010; border: 1px solid #3d2f0a; border-radius: 5px; padding: 3px 10px; cursor: pointer; letter-spacing: 0; text-transform: none; font-family: Georgia,serif; }
 
     .cards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 18px; }
     .card { background: #1a1a1a; border-radius: 10px; padding: 10px 8px; text-align: center; }
@@ -48,13 +52,14 @@
     .form-box { background: #1a1a1a; border-radius: 12px; padding: 14px; margin-bottom: 18px; border: 1px solid #2d2010; }
     .form-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
     .form-label { min-width: 80px; font-size: 12px; color: #a89060; flex-shrink: 0; }
-    .form-row select, .form-row input { flex: 1; background: #2a2a2a; color: #f5f0e8; border: 1px solid #3d2f0a; border-radius: 6px; padding: 7px 8px; font-size: 13px; width: 100%; }
+    .form-row select, .form-row input[type=text], .form-row input[type=number] { flex: 1; background: #2a2a2a; color: #f5f0e8; border: 1px solid #3d2f0a; border-radius: 6px; padding: 7px 8px; font-size: 13px; width: 100%; }
     .form-row .two-sel { display: flex; gap: 6px; flex: 1; }
     .form-row .two-sel select { flex: 1; }
     .btn { width: 100%; padding: 11px; border-radius: 8px; border: none; font-size: 14px; font-family: Georgia, serif; cursor: pointer; margin-top: 4px; font-weight: bold; letter-spacing: .5px; }
     .btn-green { background: linear-gradient(135deg, #166534, #22c55e); color: #fff; }
     .btn-red { background: linear-gradient(135deg, #7f1d1d, #ef4444); color: #fff; }
     .btn-gold { background: linear-gradient(135deg, #78350f, #f5c842); color: #1a1a1a; }
+    .btn-sm { padding: 7px 14px; width: auto; font-size: 12px; margin-top: 0; }
 
     .item-row { background: #1a1a1a; border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 3px solid #444; }
     .item-row .item-main { font-size: 13px; }
@@ -65,13 +70,13 @@
 
     .accs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
     .acc-card { background: #1a1a1a; border-radius: 12px; padding: 12px 14px; }
-    .acc-card .acc-icon { font-size: 18px; }
-    .acc-card .acc-label { font-size: 11px; color: #a89060; margin-top: 4px; }
-    .acc-card .acc-val { font-size: 16px; font-weight: bold; margin-top: 6px; }
+    .acc-card .acc-icon { font-size: 14px; }
+    .acc-card .acc-label { font-size: 10px; color: #a89060; margin-top: 4px; }
+    .acc-card .acc-val { font-size: 14px; font-weight: bold; margin-top: 6px; }
 
     .total-bar { background: #2d2010; border-radius: 10px; padding: 12px 16px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; }
     .total-bar span { color: #a89060; font-size: 13px; }
-    .total-bar .total-num { font-size: 20px; font-weight: bold; color: #f5c842; }
+    .total-bar .total-num { font-size: 18px; font-weight: bold; color: #f5c842; }
 
     .tx-row { background: #1a1a1a; border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
     .tx-row .tx-label { font-size: 13px; }
@@ -80,32 +85,49 @@
 
     .empty { color: #555; font-size: 13px; text-align: center; padding: 20px 0; }
     .month-total { text-align: right; padding: 6px 0; font-size: 15px; font-weight: bold; }
+
+    .custom-item { background: #1a1a1a; border-radius: 8px; padding: 9px 12px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+    .custom-item span { font-size: 13px; }
+    .custom-item .del-btn { background: none; border: none; color: #555; cursor: pointer; font-size: 15px; }
+
+    .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 200; align-items: center; justify-content: center; }
+    .modal-bg.open { display: flex; }
+    .modal { background: #1a1a1a; border: 1px solid #3d2f0a; border-radius: 14px; padding: 20px; width: 92%; max-width: 380px; }
+    .modal h3 { color: #f5c842; font-size: 15px; margin-bottom: 14px; }
+    .modal input[type=text], .modal select { width: 100%; background: #2a2a2a; color: #f5f0e8; border: 1px solid #3d2f0a; border-radius: 6px; padding: 8px; font-size: 13px; margin-bottom: 10px; font-family: Georgia,serif; }
+    .modal .mrow { display: flex; gap: 8px; }
+    .modal .mrow input { flex: 1; }
+    .modal-btns { display: flex; gap: 8px; margin-top: 6px; }
+    .modal-btns button { flex: 1; }
   </style>
 </head>
 <body>
 
+<div id="sync-bar">⏳ Conectando...</div>
+
 <div id="header">
   <div>
     <h1>💰 Mis Finanzas</h1>
-    <div class="sub">Control financiero personal</div>
+    <div class="sub">Héctor &amp; Romina</div>
   </div>
   <div>
     <div class="total-label">Total en cuentas</div>
-    <div class="total-val" id="hdr-total">Gs. 0</div>
+    <div class="total-val" id="hdr-total">—</div>
   </div>
 </div>
 
 <div id="month-bar">
-  <span>📅 Período:</span>
+  <span>📅</span>
   <select id="sel-month"></select>
   <select id="sel-year"></select>
 </div>
 
 <div id="nav">
-  <button class="nav-btn active" onclick="showTab('dashboard')"><span class="nav-icon">📊</span>Dashboard</button>
-  <button class="nav-btn" onclick="showTab('ingresos')"><span class="nav-icon">💚</span>Ingresos</button>
-  <button class="nav-btn" onclick="showTab('gastos')"><span class="nav-icon">🔴</span>Gastos</button>
-  <button class="nav-btn" onclick="showTab('cuentas')"><span class="nav-icon">🏦</span>Cuentas</button>
+  <button class="nav-btn active" onclick="showTab('dashboard',this)"><span class="nav-icon">📊</span>Resumen</button>
+  <button class="nav-btn" onclick="showTab('ingresos',this)"><span class="nav-icon">💚</span>Ingresos</button>
+  <button class="nav-btn" onclick="showTab('gastos',this)"><span class="nav-icon">🔴</span>Gastos</button>
+  <button class="nav-btn" onclick="showTab('cuentas',this)"><span class="nav-icon">🏦</span>Cuentas</button>
+  <button class="nav-btn" onclick="showTab('config',this)"><span class="nav-icon">⚙️</span>Config</button>
 </div>
 
 <div id="content">
@@ -114,27 +136,27 @@
   <div id="tab-dashboard" class="tab active">
     <div class="cards">
       <div class="card" style="border:1px solid #4ade8033">
-        <div class="card-icon">📈</div>
-        <div class="card-label">Ingresos</div>
-        <div class="card-val" style="color:#4ade80" id="d-income">Gs. 0</div>
+        <div class="card-icon">📈</div><div class="card-label">Ingresos</div>
+        <div class="card-val" style="color:#4ade80" id="d-income">—</div>
       </div>
       <div class="card" style="border:1px solid #f8717133">
-        <div class="card-icon">📉</div>
-        <div class="card-label">Gastos</div>
-        <div class="card-val" style="color:#f87171" id="d-expense">Gs. 0</div>
+        <div class="card-icon">📉</div><div class="card-label">Gastos</div>
+        <div class="card-val" style="color:#f87171" id="d-expense">—</div>
       </div>
       <div class="card" id="d-bal-card" style="border:1px solid #f5c84233">
         <div class="card-icon" id="d-bal-icon">✅</div>
         <div class="card-label" id="d-bal-label">Superávit</div>
-        <div class="card-val" id="d-balance" style="color:#f5c842">Gs. 0</div>
+        <div class="card-val" id="d-balance" style="color:#f5c842">—</div>
       </div>
     </div>
     <div class="section-title" id="d-income-title">Ingresos por fuente</div>
     <div id="d-income-bars"></div>
     <div class="section-title" id="d-expense-title">Gastos por categoría</div>
     <div id="d-expense-bars"></div>
-    <div class="section-title">Saldo por cuenta</div>
-    <div class="accs-grid" id="d-accounts"></div>
+    <div class="section-title">Cuentas — Héctor</div>
+    <div class="accs-grid" id="d-accounts-hec"></div>
+    <div class="section-title">Cuentas — Romina</div>
+    <div class="accs-grid" id="d-accounts-rom"></div>
   </div>
 
   <!-- INGRESOS -->
@@ -172,9 +194,13 @@
 
   <!-- CUENTAS -->
   <div id="tab-cuentas" class="tab">
-    <div class="section-title">Saldo actual por cuenta</div>
-    <div class="accs-grid" id="c-accounts"></div>
-    <div class="total-bar"><span>TOTAL GENERAL</span><span class="total-num" id="c-total">Gs. 0</span></div>
+    <div class="section-title">Cuentas — Héctor</div>
+    <div class="accs-grid" id="c-accounts-hec"></div>
+    <div class="total-bar" style="margin-bottom:10px"><span>Total Héctor</span><span class="total-num" id="c-total-hec" style="font-size:15px;color:#fb923c">—</span></div>
+    <div class="section-title">Cuentas — Romina</div>
+    <div class="accs-grid" id="c-accounts-rom"></div>
+    <div class="total-bar" style="margin-bottom:10px"><span>Total Romina</span><span class="total-num" id="c-total-rom" style="font-size:15px;color:#f472b6">—</span></div>
+    <div class="total-bar"><span>TOTAL GENERAL</span><span class="total-num" id="c-total">—</span></div>
     <div class="section-title">Ajustar saldo manualmente</div>
     <div class="form-box">
       <div class="form-row"><span class="form-label">Cuenta</span><select id="b-account"></select></div>
@@ -182,7 +208,6 @@
         <select id="b-type">
           <option value="deposito">➕ Depósito / Acreditación</option>
           <option value="retiro">➖ Retiro / Débito</option>
-          <option value="ajuste">🔄 Ajuste de saldo</option>
         </select>
       </div>
       <div class="form-row"><span class="form-label">Monto (Gs.)</span><input type="number" id="b-amount" placeholder="0"></div>
@@ -193,270 +218,374 @@
     <div id="c-txlist"></div>
   </div>
 
+  <!-- CONFIG -->
+  <div id="tab-config" class="tab">
+    <div class="section-title">
+      Fuentes de ingreso
+      <button class="add-link" onclick="openModal('income-source')">+ Nueva</button>
+    </div>
+    <div id="cfg-sources"></div>
+    <div class="section-title" style="margin-top:16px">
+      Categorías de gasto
+      <button class="add-link" onclick="openModal('expense-cat')">+ Nueva</button>
+    </div>
+    <div id="cfg-cats"></div>
+    <div class="section-title" style="margin-top:16px">
+      Cuentas bancarias
+      <button class="add-link" onclick="openModal('account')">+ Nueva</button>
+    </div>
+    <div id="cfg-accounts"></div>
+  </div>
+
 </div>
 
-<script>
-const INCOME_SOURCES = [
-  { id: "sueldo_hector", label: "Sueldo Héctor", color: "#4ade80", icon: "👨‍💼" },
-  { id: "cuota_romi", label: "Cuota Casa Romi", color: "#60a5fa", icon: "🏠" },
-  { id: "mensualidad_depto", label: "Mensualidad Depto", color: "#f472b6", icon: "🏢" },
-  { id: "campo", label: "Ingresos del Campo", color: "#facc15", icon: "🌾" },
-  { id: "filem", label: "Ingresos Filem", color: "#fb923c", icon: "🎬" },
-  { id: "ventas_varias", label: "Ventas Varias", color: "#a78bfa", icon: "🛒" },
-];
-const EXPENSE_CATEGORIES = [
-  { id: "balanceados", label: "Balanceados Campo", color: "#f59e0b", icon: "🌾", defaultSource: "mensualidad_depto" },
-  { id: "casa", label: "Gastos Casa", color: "#10b981", icon: "🏡", defaultSource: "filem" },
-  { id: "supermercado", label: "Supermercado", color: "#3b82f6", icon: "🛒", defaultSource: "sueldo_hector" },
-  { id: "campo_gastos", label: "Gastos Campo", color: "#84cc16", icon: "🚜", defaultSource: "campo" },
-  { id: "servicios", label: "Servicios", color: "#6366f1", icon: "💡", defaultSource: "sueldo_hector" },
-  { id: "salud", label: "Salud", color: "#ef4444", icon: "🏥", defaultSource: "sueldo_hector" },
-  { id: "educacion", label: "Educación", color: "#8b5cf6", icon: "📚", defaultSource: "sueldo_hector" },
-  { id: "otros", label: "Otros", color: "#94a3b8", icon: "📦", defaultSource: "sueldo_hector" },
-];
-const ACCOUNTS = [
-  { id: "banco_itau", label: "Banco Itaú", icon: "🏦", color: "#f97316" },
-  { id: "banco_continental", label: "Banco Continental", icon: "🏦", color: "#3b82f6" },
-  { id: "caja_ahorro", label: "Caja de Ahorro", icon: "💰", color: "#22c55e" },
-  { id: "efectivo", label: "Efectivo", icon: "💵", color: "#eab308" },
-  { id: "cuenta_encarnacion", label: "Cta. Encarnación", icon: "🏢", color: "#ec4899" },
-  { id: "cuenta_campo", label: "Cuenta Campo", icon: "🌾", color: "#a3e635" },
-];
-const MONTHS = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+<!-- MODAL -->
+<div class="modal-bg" id="modal-bg" onclick="closeModalBg(event)">
+  <div class="modal">
+    <h3 id="modal-title">Nueva fuente</h3>
+    <div class="mrow">
+      <input type="text" id="modal-icon" placeholder="Emoji 🎯" style="max-width:72px">
+      <input type="text" id="modal-label" placeholder="Nombre">
+    </div>
+    <div id="modal-extra"></div>
+    <input type="color" id="modal-color" value="#4ade80" style="width:100%;height:36px;padding:2px;cursor:pointer;border-radius:6px;border:1px solid #3d2f0a;background:#2a2a2a;margin-bottom:10px">
+    <div class="modal-btns">
+      <button class="btn btn-gold btn-sm" onclick="saveModal()">Guardar</button>
+      <button class="btn btn-sm" style="background:#2a2a2a;color:#a89060;border:1px solid #3d2f0a" onclick="closeModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
 
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, onValue, set, push, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDilBSPvDwB_tao6-EnzZ70SiXwX4Pznig",
+  authDomain: "misfi-app.firebaseapp.com",
+  databaseURL: "https://misfi-app-default-rtdb.firebaseio.com",
+  projectId: "misfi-app",
+  storageBucket: "misfi-app.firebasestorage.app",
+  messagingSenderId: "649780055071",
+  appId: "1:649780055071:web:c1afd531ac216c9bfd192a"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const db = getDatabase(fbApp);
+
+const DEFAULT_SOURCES = [
+  { id:"sueldo_hector", label:"Sueldo Héctor", color:"#4ade80", icon:"👨‍💼" },
+  { id:"cuota_romi", label:"Cuota Casa Romi", color:"#60a5fa", icon:"🏠" },
+  { id:"mensualidad_depto", label:"Mensualidad Depto", color:"#f472b6", icon:"🏢" },
+  { id:"campo", label:"Ingresos del Campo", color:"#facc15", icon:"🌾" },
+  { id:"filem", label:"Ingresos Filem", color:"#fb923c", icon:"🎬" },
+  { id:"ventas_varias", label:"Ventas Varias", color:"#a78bfa", icon:"🛒" },
+];
+const DEFAULT_CATS = [
+  { id:"balanceados", label:"Balanceados Campo", color:"#f59e0b", icon:"🌾", defaultSource:"mensualidad_depto" },
+  { id:"casa", label:"Gastos Casa", color:"#10b981", icon:"🏡", defaultSource:"filem" },
+  { id:"supermercado", label:"Supermercado", color:"#3b82f6", icon:"🛒", defaultSource:"sueldo_hector" },
+  { id:"campo_gastos", label:"Gastos Campo", color:"#84cc16", icon:"🚜", defaultSource:"campo" },
+  { id:"servicios", label:"Servicios", color:"#6366f1", icon:"💡", defaultSource:"sueldo_hector" },
+  { id:"salud", label:"Salud", color:"#ef4444", icon:"🏥", defaultSource:"sueldo_hector" },
+  { id:"educacion", label:"Educación", color:"#8b5cf6", icon:"📚", defaultSource:"sueldo_hector" },
+  { id:"otros", label:"Otros", color:"#94a3b8", icon:"📦", defaultSource:"sueldo_hector" },
+];
+const DEFAULT_ACCOUNTS = [
+  { id:"hec_itau", label:"Itaú", icon:"👨‍💼", color:"#f97316", owner:"Héctor" },
+  { id:"hec_continental_cte", label:"Continental Cte.", icon:"👨‍💼", color:"#fb923c", owner:"Héctor" },
+  { id:"hec_continental_aho", label:"Continental Ahorro", icon:"👨‍💼", color:"#fbbf24", owner:"Héctor" },
+  { id:"hec_ueno", label:"UENO", icon:"👨‍💼", color:"#a3e635", owner:"Héctor" },
+  { id:"hec_appeby", label:"Appeby Ahorro", icon:"👨‍💼", color:"#34d399", owner:"Héctor" },
+  { id:"hec_coofy", label:"Coofy Ahorro", icon:"👨‍💼", color:"#22d3ee", owner:"Héctor" },
+  { id:"hec_sanjuba", label:"Sanjuba Ahorro", icon:"👨‍💼", color:"#818cf8", owner:"Héctor" },
+  { id:"rom_itau", label:"Itaú", icon:"👩", color:"#f472b6", owner:"Romina" },
+  { id:"rom_continental", label:"Continental", icon:"👩", color:"#e879f9", owner:"Romina" },
+  { id:"rom_familiar", label:"Familiar", icon:"👩", color:"#c084fc", owner:"Romina" },
+  { id:"rom_ueno", label:"UENO", icon:"👩", color:"#a78bfa", owner:"Romina" },
+];
+
+const MONTHS = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
 const fmt = n => new Intl.NumberFormat("es-PY",{style:"currency",currency:"PYG",maximumFractionDigits:0}).format(n||0);
 
 const now = new Date();
 let filterMonth = now.getMonth();
 let filterYear = now.getFullYear();
+let state = { incomes:{}, expenses:{}, accountBalances:{}, accountTransactions:{}, sources:{}, categories:{}, accounts:{} };
 
-function loadData() {
-  try { return JSON.parse(localStorage.getItem("finanzas_hector")) || newState(); }
-  catch { return newState(); }
+function syncBar(cls, msg) {
+  const el = document.getElementById('sync-bar');
+  el.className = cls; el.textContent = msg;
 }
-function newState() {
-  const balances = {};
-  ACCOUNTS.forEach(a => balances[a.id] = 0);
-  return { incomes: [], expenses: [], accountBalances: balances, accountTransactions: [] };
+
+function listenAll() {
+  onValue(ref(db,'/'), snap => {
+    const val = snap.val() || {};
+    state.incomes = val.incomes || {};
+    state.expenses = val.expenses || {};
+    state.accountBalances = val.accountBalances || {};
+    state.accountTransactions = val.accountTransactions || {};
+
+    if (!val.sources) {
+      const o = {}; DEFAULT_SOURCES.forEach(s=>o[s.id]=s); set(ref(db,'/sources'),o);
+    }
+    if (!val.categories) {
+      const o = {}; DEFAULT_CATS.forEach(c=>o[c.id]=c); set(ref(db,'/categories'),o);
+    }
+    if (!val.accounts) {
+      const o = {}; DEFAULT_ACCOUNTS.forEach(a=>o[a.id]=a); set(ref(db,'/accounts'),o);
+      const b = {}; DEFAULT_ACCOUNTS.forEach(a=>b[a.id]=0); set(ref(db,'/accountBalances'),b);
+    }
+
+    state.sources = val.sources || Object.fromEntries(DEFAULT_SOURCES.map(s=>[s.id,s]));
+    state.categories = val.categories || Object.fromEntries(DEFAULT_CATS.map(c=>[c.id,c]));
+    state.accounts = val.accounts || Object.fromEntries(DEFAULT_ACCOUNTS.map(a=>[a.id,a]));
+
+    syncBar('ok','🟢 Sincronizado en tiempo real · datos compartidos');
+    rebuildSelects();
+    render();
+  }, () => syncBar('err','🔴 Sin conexión — revisá internet'));
 }
-function save() { localStorage.setItem("finanzas_hector", JSON.stringify(state)); }
 
-let state = loadData();
+const sources = () => Object.values(state.sources);
+const cats = () => Object.values(state.categories);
+const accs = () => Object.values(state.accounts);
+const incList = () => Object.entries(state.incomes).map(([k,v])=>({...v,_key:k}));
+const expList = () => Object.entries(state.expenses).map(([k,v])=>({...v,_key:k}));
+const txList = () => Object.entries(state.accountTransactions||{}).map(([k,v])=>({...v,_key:k}));
 
-// Populate selects
-function populateSelect(id, options) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.innerHTML = options.map(o => `<option value="${o.value}">${o.label}</option>`).join('');
+function populateSel(id, opts) {
+  const el = document.getElementById(id); if(!el) return;
+  const cur = el.value;
+  el.innerHTML = opts.map(o=>`<option value="${o.v}">${o.l}</option>`).join('');
+  if(cur) el.value = cur;
 }
-function initSelects() {
-  const monthOpts = MONTHS.map((m,i)=>({value:i,label:m}));
-  const yearOpts = [2024,2025,2026,2027].map(y=>({value:y,label:y}));
-  const srcOpts = INCOME_SOURCES.map(s=>({value:s.id,label:`${s.icon} ${s.label}`}));
-  const catOpts = EXPENSE_CATEGORIES.map(c=>({value:c.id,label:`${c.icon} ${c.label}`}));
-  const accOpts = ACCOUNTS.map(a=>({value:a.id,label:`${a.icon} ${a.label}`}));
+function rebuildSelects() {
+  const sOpts = sources().map(s=>({v:s.id,l:`${s.icon} ${s.label}`}));
+  const cOpts = cats().map(c=>({v:c.id,l:`${c.icon} ${c.label}`}));
+  const aOpts = accs().map(a=>({v:a.id,l:`${a.icon} ${a.owner} — ${a.label}`}));
+  ['i-source'].forEach(id=>populateSel(id,sOpts));
+  ['i-account','e-account','b-account'].forEach(id=>populateSel(id,aOpts));
+  ['e-category'].forEach(id=>populateSel(id,cOpts));
+  ['e-source'].forEach(id=>populateSel(id,sOpts));
+}
 
-  // Month bar
+function initMonthYear() {
+  const mOpts = MONTHS.map((m,i)=>({v:i,l:m}));
+  const yOpts = [2023,2024,2025,2026,2027].map(y=>({v:y,l:y}));
   const sm = document.getElementById('sel-month');
-  sm.innerHTML = monthOpts.map(o=>`<option value="${o.value}">${o.label}</option>`).join('');
-  sm.value = filterMonth;
-  sm.onchange = () => { filterMonth = +sm.value; render(); };
+  sm.innerHTML = mOpts.map(o=>`<option value="${o.v}">${o.l}</option>`).join('');
+  sm.value = filterMonth; sm.onchange=()=>{filterMonth=+sm.value;render();};
   const sy = document.getElementById('sel-year');
-  sy.innerHTML = [2023,2024,2025,2026,2027].map(y=>`<option value="${y}">${y}</option>`).join('');
-  sy.value = filterYear;
-  sy.onchange = () => { filterYear = +sy.value; render(); };
-
-  // Income form
-  populateSelect('i-source', srcOpts);
-  populateSelect('i-account', accOpts);
-  ['i-month','e-month'].forEach(id => { const el=document.getElementById(id); el.innerHTML=monthOpts.map(o=>`<option value="${o.value}">${o.label}</option>`).join(''); el.value=filterMonth; });
-  ['i-year','e-year'].forEach(id => { const el=document.getElementById(id); el.innerHTML=yearOpts.map(o=>`<option value="${o.value}">${o.label}</option>`).join(''); el.value=filterYear; });
-
-  // Expense form
-  populateSelect('e-category', catOpts);
-  populateSelect('e-source', srcOpts);
-  document.getElementById('e-source').value = 'mensualidad_depto';
-  populateSelect('e-account', accOpts);
-
-  // Cuentas form
-  populateSelect('b-account', accOpts);
+  sy.innerHTML = yOpts.map(o=>`<option value="${o.v}">${o.l}</option>`).join('');
+  sy.value = filterYear; sy.onchange=()=>{filterYear=+sy.value;render();};
+  ['i-month','e-month'].forEach(id=>{
+    const el=document.getElementById(id);
+    el.innerHTML=mOpts.map(o=>`<option value="${o.v}">${o.l}</option>`).join(''); el.value=filterMonth;
+  });
+  ['i-year','e-year'].forEach(id=>{
+    const el=document.getElementById(id);
+    el.innerHTML=yOpts.map(o=>`<option value="${o.v}">${o.l}</option>`).join(''); el.value=filterYear;
+  });
 }
 
-function onCatChange() {
-  const catId = document.getElementById('e-category').value;
-  const cat = EXPENSE_CATEGORIES.find(c=>c.id===catId);
-  if (cat) document.getElementById('e-source').value = cat.defaultSource;
-}
+window.onCatChange = () => {
+  const c = cats().find(x=>x.id===document.getElementById('e-category').value);
+  if(c?.defaultSource) document.getElementById('e-source').value = c.defaultSource;
+};
 
-function addIncome() {
-  const amt = parseFloat(document.getElementById('i-amount').value);
-  if (!amt) return;
-  const src = document.getElementById('i-source').value;
+window.addIncome = () => {
+  const amt = parseFloat(document.getElementById('i-amount').value); if(!amt) return;
   const acc = document.getElementById('i-account').value;
-  const desc = document.getElementById('i-desc').value;
-  const month = +document.getElementById('i-month').value;
-  const year = +document.getElementById('i-year').value;
-  state.incomes.push({ id: Date.now(), source: src, account: acc, amount: amt, description: desc, month, year, date: new Date().toISOString() });
-  state.accountBalances[acc] = (state.accountBalances[acc]||0) + amt;
-  document.getElementById('i-amount').value = '';
-  document.getElementById('i-desc').value = '';
-  save(); render();
-}
+  push(ref(db,'/incomes'),{
+    source: document.getElementById('i-source').value,
+    account: acc, amount: amt,
+    description: document.getElementById('i-desc').value,
+    month: +document.getElementById('i-month').value,
+    year: +document.getElementById('i-year').value,
+    date: new Date().toISOString()
+  });
+  set(ref(db,`/accountBalances/${acc}`),(state.accountBalances[acc]||0)+amt);
+  document.getElementById('i-amount').value=''; document.getElementById('i-desc').value='';
+};
 
-function addExpense() {
-  const amt = parseFloat(document.getElementById('e-amount').value);
-  if (!amt) return;
-  const cat = document.getElementById('e-category').value;
-  const src = document.getElementById('e-source').value;
+window.addExpense = () => {
+  const amt = parseFloat(document.getElementById('e-amount').value); if(!amt) return;
   const acc = document.getElementById('e-account').value;
-  const desc = document.getElementById('e-desc').value;
-  const month = +document.getElementById('e-month').value;
-  const year = +document.getElementById('e-year').value;
-  state.expenses.push({ id: Date.now(), category: cat, source: src, account: acc, amount: amt, description: desc, month, year, date: new Date().toISOString() });
-  state.accountBalances[acc] = (state.accountBalances[acc]||0) - amt;
-  document.getElementById('e-amount').value = '';
-  document.getElementById('e-desc').value = '';
-  save(); render();
-}
+  push(ref(db,'/expenses'),{
+    category: document.getElementById('e-category').value,
+    source: document.getElementById('e-source').value,
+    account: acc, amount: amt,
+    description: document.getElementById('e-desc').value,
+    month: +document.getElementById('e-month').value,
+    year: +document.getElementById('e-year').value,
+    date: new Date().toISOString()
+  });
+  set(ref(db,`/accountBalances/${acc}`),(state.accountBalances[acc]||0)-amt);
+  document.getElementById('e-amount').value=''; document.getElementById('e-desc').value='';
+};
 
-function updateBalance() {
-  const amt = parseFloat(document.getElementById('b-amount').value);
-  if (!amt) return;
+window.updateBalance = () => {
+  const amt = parseFloat(document.getElementById('b-amount').value); if(!amt) return;
   const acc = document.getElementById('b-account').value;
   const type = document.getElementById('b-type').value;
-  const desc = document.getElementById('b-desc').value;
-  const delta = type === 'retiro' ? -amt : amt;
-  state.accountBalances[acc] = (state.accountBalances[acc]||0) + delta;
-  state.accountTransactions.push({ id: Date.now(), account: acc, type, amount: amt, delta, description: desc, date: new Date().toISOString() });
-  document.getElementById('b-amount').value = '';
-  document.getElementById('b-desc').value = '';
-  save(); render();
-}
+  const delta = type==='retiro' ? -amt : amt;
+  set(ref(db,`/accountBalances/${acc}`),(state.accountBalances[acc]||0)+delta);
+  push(ref(db,'/accountTransactions'),{
+    account:acc, type, amount:amt, delta,
+    description: document.getElementById('b-desc').value,
+    date: new Date().toISOString()
+  });
+  document.getElementById('b-amount').value=''; document.getElementById('b-desc').value='';
+};
 
-function deleteIncome(id) {
-  const item = state.incomes.find(i=>i.id===id);
-  if (!item) return;
-  state.accountBalances[item.account] = (state.accountBalances[item.account]||0) - item.amount;
-  state.incomes = state.incomes.filter(i=>i.id!==id);
-  save(); render();
-}
+window.deleteIncome = key => {
+  const item = state.incomes[key]; if(!item) return;
+  if(!confirm('¿Eliminar este ingreso?')) return;
+  remove(ref(db,`/incomes/${key}`));
+  set(ref(db,`/accountBalances/${item.account}`),(state.accountBalances[item.account]||0)-item.amount);
+};
+window.deleteExpense = key => {
+  const item = state.expenses[key]; if(!item) return;
+  if(!confirm('¿Eliminar este gasto?')) return;
+  remove(ref(db,`/expenses/${key}`));
+  set(ref(db,`/accountBalances/${item.account}`),(state.accountBalances[item.account]||0)+item.amount);
+};
+window.deleteSource = id => { if(confirm('¿Eliminar esta fuente?')) remove(ref(db,`/sources/${id}`)); };
+window.deleteCat = id => { if(confirm('¿Eliminar esta categoría?')) remove(ref(db,`/categories/${id}`)); };
+window.deleteAccount = id => {
+  if(!confirm('¿Eliminar esta cuenta?')) return;
+  remove(ref(db,`/accounts/${id}`)); remove(ref(db,`/accountBalances/${id}`));
+};
 
-function deleteExpense(id) {
-  const item = state.expenses.find(i=>i.id===id);
-  if (!item) return;
-  state.accountBalances[item.account] = (state.accountBalances[item.account]||0) + item.amount;
-  state.expenses = state.expenses.filter(i=>i.id!==id);
-  save(); render();
-}
+let modalType = '';
+window.openModal = type => {
+  modalType = type;
+  const titles = {'income-source':'Nueva fuente de ingreso','expense-cat':'Nueva categoría de gasto','account':'Nueva cuenta bancaria'};
+  document.getElementById('modal-title').textContent = titles[type];
+  document.getElementById('modal-icon').value='';
+  document.getElementById('modal-label').value='';
+  document.getElementById('modal-color').value='#4ade80';
+  const extra = document.getElementById('modal-extra');
+  if(type==='expense-cat') {
+    const opts = sources().map(s=>`<option value="${s.id}">${s.icon} ${s.label}</option>`).join('');
+    extra.innerHTML=`<select id="modal-def-src" style="width:100%;background:#2a2a2a;color:#f5f0e8;border:1px solid #3d2f0a;border-radius:6px;padding:8px;font-size:13px;margin-bottom:10px;font-family:Georgia,serif"><option value="">Fuente por defecto (opcional)</option>${opts}</select>`;
+  } else if(type==='account') {
+    extra.innerHTML=`<select id="modal-owner" style="width:100%;background:#2a2a2a;color:#f5f0e8;border:1px solid #3d2f0a;border-radius:6px;padding:8px;font-size:13px;margin-bottom:10px;font-family:Georgia,serif"><option value="Héctor">👨‍💼 Héctor</option><option value="Romina">👩 Romina</option></select>`;
+  } else { extra.innerHTML=''; }
+  document.getElementById('modal-bg').classList.add('open');
+};
+window.closeModal = () => document.getElementById('modal-bg').classList.remove('open');
+window.closeModalBg = e => { if(e.target.id==='modal-bg') closeModal(); };
+window.saveModal = () => {
+  const icon = document.getElementById('modal-icon').value.trim()||'📌';
+  const label = document.getElementById('modal-label').value.trim();
+  const color = document.getElementById('modal-color').value;
+  if(!label) return alert('Ingresá un nombre');
+  const id = 'c_'+Date.now();
+  if(modalType==='income-source') {
+    set(ref(db,`/sources/${id}`),{id,label,icon,color});
+  } else if(modalType==='expense-cat') {
+    const def = document.getElementById('modal-def-src')?.value||'';
+    set(ref(db,`/categories/${id}`),{id,label,icon,color,defaultSource:def});
+  } else if(modalType==='account') {
+    const owner = document.getElementById('modal-owner').value;
+    set(ref(db,`/accounts/${id}`),{id,label,icon:owner==='Héctor'?'👨‍💼':'👩',color,owner});
+    set(ref(db,`/accountBalances/${id}`),0);
+  }
+  closeModal();
+};
 
 function render() {
-  const fi = state.incomes.filter(i=>i.month===filterMonth && i.year===filterYear);
-  const fe = state.expenses.filter(e=>e.month===filterMonth && e.year===filterYear);
-  const totalIncome = fi.reduce((s,i)=>s+i.amount,0);
-  const totalExpense = fe.reduce((s,e)=>s+e.amount,0);
-  const balance = totalIncome - totalExpense;
-  const totalAccounts = Object.values(state.accountBalances).reduce((s,v)=>s+v,0);
+  const fi = incList().filter(i=>i.month===filterMonth&&i.year===filterYear);
+  const fe = expList().filter(e=>e.month===filterMonth&&e.year===filterYear);
+  const totalInc = fi.reduce((s,i)=>s+i.amount,0);
+  const totalExp = fe.reduce((s,e)=>s+e.amount,0);
+  const bal = totalInc - totalExp;
+  const hecA = accs().filter(a=>a.owner==='Héctor');
+  const romA = accs().filter(a=>a.owner==='Romina');
+  const totHec = hecA.reduce((s,a)=>s+(state.accountBalances[a.id]||0),0);
+  const totRom = romA.reduce((s,a)=>s+(state.accountBalances[a.id]||0),0);
+  const totAll = totHec+totRom;
 
-  // Header
-  const hdrEl = document.getElementById('hdr-total');
-  hdrEl.textContent = fmt(totalAccounts);
-  hdrEl.style.color = totalAccounts >= 0 ? '#4ade80' : '#f87171';
+  const hEl=document.getElementById('hdr-total');
+  hEl.textContent=fmt(totAll); hEl.style.color=totAll>=0?'#4ade80':'#f87171';
 
-  // Dashboard cards
-  document.getElementById('d-income').textContent = fmt(totalIncome);
-  document.getElementById('d-expense').textContent = fmt(totalExpense);
-  const balEl = document.getElementById('d-balance');
-  balEl.textContent = fmt(Math.abs(balance));
-  balEl.style.color = balance >= 0 ? '#f5c842' : '#f97316';
-  document.getElementById('d-bal-label').textContent = balance >= 0 ? 'Superávit' : 'Déficit';
-  document.getElementById('d-bal-icon').textContent = balance >= 0 ? '✅' : '⚠️';
-  document.getElementById('d-bal-card').style.borderColor = (balance >= 0 ? '#f5c842' : '#f97316') + '33';
+  document.getElementById('d-income').textContent=fmt(totalInc);
+  document.getElementById('d-expense').textContent=fmt(totalExp);
+  const bEl=document.getElementById('d-balance');
+  bEl.textContent=fmt(Math.abs(bal)); bEl.style.color=bal>=0?'#f5c842':'#f97316';
+  document.getElementById('d-bal-label').textContent=bal>=0?'Superávit':'Déficit';
+  document.getElementById('d-bal-icon').textContent=bal>=0?'✅':'⚠️';
+  document.getElementById('d-income-title').textContent=`Ingresos por fuente — ${MONTHS[filterMonth]} ${filterYear}`;
+  document.getElementById('d-expense-title').textContent=`Gastos por categoría — ${MONTHS[filterMonth]} ${filterYear}`;
 
-  // Dashboard titles
-  document.getElementById('d-income-title').textContent = `Ingresos por fuente — ${MONTHS[filterMonth]} ${filterYear}`;
-  document.getElementById('d-expense-title').textContent = `Gastos por categoría — ${MONTHS[filterMonth]} ${filterYear}`;
+  const srcList=sources();
+  document.getElementById('d-income-bars').innerHTML = srcList
+    .map(s=>({...s,total:fi.filter(i=>i.source===s.id).reduce((a,i)=>a+i.amount,0)}))
+    .filter(s=>s.total>0)
+    .map(s=>`<div class="bar-row"><div class="bar-top"><span>${s.icon} ${s.label}</span><span style="color:${s.color}">${fmt(s.total)}</span></div><div class="bar-track"><div class="bar-fill" style="width:${totalInc>0?s.total/totalInc*100:0}%;background:${s.color}"></div></div></div>`)
+    .join('') || '<div class="empty">Sin ingresos registrados este mes</div>';
 
-  // Income bars
-  const ibEl = document.getElementById('d-income-bars');
-  const incBySrc = INCOME_SOURCES.map(s=>({...s, total: fi.filter(i=>i.source===s.id).reduce((a,i)=>a+i.amount,0)})).filter(s=>s.total>0);
-  ibEl.innerHTML = incBySrc.length ? incBySrc.map(s=>`
-    <div class="bar-row">
-      <div class="bar-top"><span>${s.icon} ${s.label}</span><span style="color:${s.color}">${fmt(s.total)}</span></div>
-      <div class="bar-track"><div class="bar-fill" style="width:${totalIncome>0?s.total/totalIncome*100:0}%;background:${s.color}"></div></div>
-    </div>`).join('') : '<div class="empty">Sin ingresos registrados este mes</div>';
+  const catList=cats();
+  document.getElementById('d-expense-bars').innerHTML = catList
+    .map(c=>({...c,total:fe.filter(e=>e.category===c.id).reduce((a,e)=>a+e.amount,0)}))
+    .filter(c=>c.total>0)
+    .map(c=>`<div class="bar-row"><div class="bar-top"><span>${c.icon} ${c.label}</span><span style="color:${c.color}">${fmt(c.total)}</span></div><div class="bar-track"><div class="bar-fill" style="width:${totalExp>0?c.total/totalExp*100:0}%;background:${c.color}"></div></div></div>`)
+    .join('') || '<div class="empty">Sin gastos registrados este mes</div>';
 
-  // Expense bars
-  const ebEl = document.getElementById('d-expense-bars');
-  const expByCat = EXPENSE_CATEGORIES.map(c=>({...c, total: fe.filter(e=>e.category===c.id).reduce((a,e)=>a+e.amount,0)})).filter(c=>c.total>0);
-  ebEl.innerHTML = expByCat.length ? expByCat.map(c=>`
-    <div class="bar-row">
-      <div class="bar-top"><span>${c.icon} ${c.label}</span><span style="color:${c.color}">${fmt(c.total)}</span></div>
-      <div class="bar-track"><div class="bar-fill" style="width:${totalExpense>0?c.total/totalExpense*100:0}%;background:${c.color}"></div></div>
-    </div>`).join('') : '<div class="empty">Sin gastos registrados este mes</div>';
+  const accCard = (a) => `<div class="acc-card" style="border:1px solid ${a.color}44"><div class="acc-icon">${a.icon}</div><div class="acc-label">${a.label}</div><div class="acc-val" style="color:${(state.accountBalances[a.id]||0)>=0?'#4ade80':'#f87171'}">${fmt(state.accountBalances[a.id])}</div></div>`;
+  document.getElementById('d-accounts-hec').innerHTML = hecA.map(accCard).join('');
+  document.getElementById('d-accounts-rom').innerHTML = romA.map(accCard).join('');
+  document.getElementById('c-accounts-hec').innerHTML = hecA.map(accCard).join('');
+  document.getElementById('c-accounts-rom').innerHTML = romA.map(accCard).join('');
+  document.getElementById('c-total-hec').textContent=fmt(totHec);
+  document.getElementById('c-total-rom').textContent=fmt(totRom);
+  document.getElementById('c-total').textContent=fmt(totAll);
 
-  // Dashboard accounts
-  document.getElementById('d-accounts').innerHTML = ACCOUNTS.map(a=>`
-    <div class="acc-card" style="border:1px solid ${a.color}44">
-      <div class="acc-icon">${a.icon}</div>
-      <div class="acc-label">${a.label}</div>
-      <div class="acc-val" style="color:${(state.accountBalances[a.id]||0)>=0?'#4ade80':'#f87171'}">${fmt(state.accountBalances[a.id])}</div>
-    </div>`).join('');
+  document.getElementById('i-list-title').textContent=`Ingresos — ${MONTHS[filterMonth]} ${filterYear}`;
+  document.getElementById('i-list').innerHTML = fi.length
+    ? fi.slice().sort((a,b)=>new Date(b.date)-new Date(a.date)).map(inc=>{
+        const s=srcList.find(x=>x.id===inc.source)||{icon:'',label:inc.source,color:'#444'};
+        const a=accs().find(x=>x.id===inc.account)||{icon:'',label:inc.account,owner:''};
+        return `<div class="item-row" style="border-left-color:${s.color}"><div><div class="item-main">${s.icon} ${s.label}</div><div class="item-sub">${a.icon} ${a.owner} ${a.label}${inc.description?' · '+inc.description:''}</div></div><div class="item-right"><div class="item-amt" style="color:#4ade80">+${fmt(inc.amount)}</div><button class="del-btn" onclick="deleteIncome('${inc._key}')">✕</button></div></div>`;
+      }).join('')
+    : '<div class="empty">Sin ingresos este mes</div>';
+  document.getElementById('i-total').textContent=fi.length?`Total: ${fmt(totalInc)}`:'';
 
-  // Income list
-  document.getElementById('i-list-title').textContent = `Ingresos — ${MONTHS[filterMonth]} ${filterYear}`;
-  const ilEl = document.getElementById('i-list');
-  ilEl.innerHTML = fi.length ? fi.map(inc=>{
-    const s=INCOME_SOURCES.find(x=>x.id===inc.source)||{};
-    const a=ACCOUNTS.find(x=>x.id===inc.account)||{};
-    return `<div class="item-row" style="border-left-color:${s.color||'#444'}">
-      <div><div class="item-main">${s.icon||''} ${s.label||''}</div><div class="item-sub">${a.icon||''} ${a.label||''}${inc.description?' · '+inc.description:''}</div></div>
-      <div class="item-right"><div class="item-amt" style="color:#4ade80">+${fmt(inc.amount)}</div><button class="del-btn" onclick="deleteIncome(${inc.id})">✕</button></div>
-    </div>`;}).join('') : '<div class="empty">Sin ingresos este mes</div>';
-  const itEl = document.getElementById('i-total');
-  itEl.textContent = fi.length ? `Total: ${fmt(totalIncome)}` : '';
+  document.getElementById('e-list-title').textContent=`Gastos — ${MONTHS[filterMonth]} ${filterYear}`;
+  document.getElementById('e-list').innerHTML = fe.length
+    ? fe.slice().sort((a,b)=>new Date(b.date)-new Date(a.date)).map(exp=>{
+        const c=catList.find(x=>x.id===exp.category)||{icon:'',label:exp.category,color:'#444'};
+        const s=srcList.find(x=>x.id===exp.source)||{icon:'',label:exp.source};
+        const a=accs().find(x=>x.id===exp.account)||{icon:'',label:exp.account,owner:''};
+        return `<div class="item-row" style="border-left-color:${c.color}"><div><div class="item-main">${c.icon} ${c.label}</div><div class="item-sub">${s.icon} ${s.label} · ${a.icon} ${a.owner} ${a.label}${exp.description?' · '+exp.description:''}</div></div><div class="item-right"><div class="item-amt" style="color:#f87171">-${fmt(exp.amount)}</div><button class="del-btn" onclick="deleteExpense('${exp._key}')">✕</button></div></div>`;
+      }).join('')
+    : '<div class="empty">Sin gastos este mes</div>';
+  document.getElementById('e-total').textContent=fe.length?`Total: ${fmt(totalExp)}`:'';
 
-  // Expense list
-  document.getElementById('e-list-title').textContent = `Gastos — ${MONTHS[filterMonth]} ${filterYear}`;
-  const elEl = document.getElementById('e-list');
-  elEl.innerHTML = fe.length ? fe.map(exp=>{
-    const c=EXPENSE_CATEGORIES.find(x=>x.id===exp.category)||{};
-    const s=INCOME_SOURCES.find(x=>x.id===exp.source)||{};
-    const a=ACCOUNTS.find(x=>x.id===exp.account)||{};
-    return `<div class="item-row" style="border-left-color:${c.color||'#444'}">
-      <div><div class="item-main">${c.icon||''} ${c.label||''}</div><div class="item-sub">${s.icon||''} ${s.label||''} · ${a.icon||''} ${a.label||''}${exp.description?' · '+exp.description:''}</div></div>
-      <div class="item-right"><div class="item-amt" style="color:#f87171">-${fmt(exp.amount)}</div><button class="del-btn" onclick="deleteExpense(${exp.id})">✕</button></div>
-    </div>`;}).join('') : '<div class="empty">Sin gastos este mes</div>';
-  const etEl = document.getElementById('e-total');
-  etEl.textContent = fe.length ? `Total: ${fmt(totalExpense)}` : '';
+  const txs=txList().sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,15);
+  document.getElementById('c-txlist').innerHTML = txs.length
+    ? txs.map(tx=>{
+        const a=accs().find(x=>x.id===tx.account)||{icon:'',label:tx.account,owner:''};
+        return `<div class="tx-row"><div><div class="tx-label">${a.icon} ${a.owner} — ${a.label}</div><div class="tx-sub">${tx.description||tx.type} · ${new Date(tx.date).toLocaleDateString('es-PY')}</div></div><div class="tx-amt" style="color:${tx.delta>=0?'#4ade80':'#f87171'}">${tx.delta>=0?'+':''}${fmt(tx.delta)}</div></div>`;
+      }).join('')
+    : '<div class="empty">Sin movimientos manuales</div>';
 
-  // Cuentas tab
-  document.getElementById('c-accounts').innerHTML = ACCOUNTS.map(a=>`
-    <div class="acc-card" style="border:1px solid ${a.color}44">
-      <div class="acc-icon">${a.icon}</div>
-      <div class="acc-label">${a.label}</div>
-      <div class="acc-val" style="color:${(state.accountBalances[a.id]||0)>=0?'#4ade80':'#f87171'}">${fmt(state.accountBalances[a.id])}</div>
-    </div>`).join('');
-  document.getElementById('c-total').textContent = fmt(totalAccounts);
-
-  const txEl = document.getElementById('c-txlist');
-  const txs = [...state.accountTransactions].reverse().slice(0,15);
-  txEl.innerHTML = txs.length ? txs.map(tx=>{
-    const a=ACCOUNTS.find(x=>x.id===tx.account)||{};
-    return `<div class="tx-row">
-      <div><div class="tx-label">${a.icon||''} ${a.label||''}</div><div class="tx-sub">${tx.description||tx.type} · ${new Date(tx.date).toLocaleDateString('es-PY')}</div></div>
-      <div class="tx-amt" style="color:${tx.delta>=0?'#4ade80':'#f87171'}">${tx.delta>=0?'+':''}${fmt(tx.delta)}</div>
-    </div>`;}).join('') : '<div class="empty">Sin movimientos manuales</div>';
+  document.getElementById('cfg-sources').innerHTML = srcList.map(s=>`<div class="custom-item"><span>${s.icon} <span style="color:${s.color}">${s.label}</span></span><button class="del-btn" onclick="deleteSource('${s.id}')">✕</button></div>`).join('');
+  document.getElementById('cfg-cats').innerHTML = catList.map(c=>`<div class="custom-item"><span>${c.icon} <span style="color:${c.color}">${c.label}</span></span><button class="del-btn" onclick="deleteCat('${c.id}')">✕</button></div>`).join('');
+  document.getElementById('cfg-accounts').innerHTML = accs().map(a=>`<div class="custom-item"><span>${a.icon} <span style="color:${a.color}">${a.owner} — ${a.label}</span></span><button class="del-btn" onclick="deleteAccount('${a.id}')">✕</button></div>`).join('');
 }
 
-function showTab(id) {
+window.showTab = (id, btn) => {
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+id).classList.add('active');
-  event.currentTarget.classList.add('active');
-}
+  btn.classList.add('active');
+};
 
-initSelects();
-render();
+initMonthYear();
+listenAll();
 </script>
 </body>
 </html>
