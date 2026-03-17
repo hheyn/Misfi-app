@@ -483,10 +483,20 @@ window.doTransfer = () => {
   const to=document.getElementById('t-to').value;
   if(from===to){alert('Las cuentas deben ser distintas');return;}
   const desc=document.getElementById('t-desc').value||'Transferencia';
-  set(ref(db,`/accountBalances/${from}`),(state.accountBalances[from]||0)-amt);
-  set(ref(db,`/accountBalances/${to}`),(state.accountBalances[to]||0)+amt);
+  const balFrom = state.accountBalances[from] || 0;
+  const balTo   = state.accountBalances[to]   || 0;
+  set(ref(db,`/accountBalances/${from}`), balFrom - amt);
+  set(ref(db,`/accountBalances/${to}`),   balTo   + amt);
   push(ref(db,'/transfers'),{from,to,amount:amt,description:desc,date:new Date().toISOString()});
   document.getElementById('t-amount').value=''; document.getElementById('t-desc').value='';
+};
+window.deleteTransfer = key => {
+  const item=state.transfers[key]; if(!item||!confirm('\u00bfRevertir esta transferencia?')) return;
+  const balFrom = state.accountBalances[item.from] || 0;
+  const balTo   = state.accountBalances[item.to]   || 0;
+  set(ref(db,`/accountBalances/${item.from}`), balFrom + item.amount);
+  set(ref(db,`/accountBalances/${item.to}`),   balTo   - item.amount);
+  remove(ref(db,`/transfers/${key}`));
 };
 window.deleteIncome = key => { const item=state.incomes[key]; if(!item||!confirm('¿Eliminar?')) return; remove(ref(db,`/incomes/${key}`)); set(ref(db,`/accountBalances/${item.account}`),(state.accountBalances[item.account]||0)-item.amount); };
 window.deleteExpense = key => { const item=state.expenses[key]; if(!item||!confirm('¿Eliminar?')) return; remove(ref(db,`/expenses/${key}`)); set(ref(db,`/accountBalances/${item.account}`),(state.accountBalances[item.account]||0)+item.amount); };
@@ -663,7 +673,7 @@ function render() {
     if(tx._tipo==='transfer'){
       const fa=accs().find(x=>x.id===tx.from)||{icon:'',label:tx.from,owner:''};
       const ta=accs().find(x=>x.id===tx.to)||{icon:'',label:tx.to,owner:''};
-      return `<div class="tx-row"><div><div class="tx-label">⇄ ${fa.owner} ${fa.label} → ${ta.owner} ${ta.label}</div><div class="tx-sub">${tx.description} · ${new Date(tx.date).toLocaleDateString('es-PY')}</div></div><div class="tx-amt" style="color:#60a5fa">${fmt(tx.amount)}</div></div>`;
+      return `<div class="tx-row"><div><div class="tx-label">⇄ ${fa.owner} ${fa.label} → ${ta.owner} ${ta.label}</div><div class="tx-sub">${tx.description} · ${new Date(tx.date).toLocaleDateString('es-PY')}</div></div><div class="item-right"><div class="tx-amt" style="color:#60a5fa">${fmt(tx.amount)}</div><button class="del-btn" onclick="deleteTransfer('${tx._key}')">✕</button></div></div>`;
     }
     const a=accs().find(x=>x.id===tx.account)||{icon:'',label:tx.account,owner:''};
     return `<div class="tx-row"><div><div class="tx-label">${a.icon} ${a.owner} — ${a.label}</div><div class="tx-sub">${tx.description||tx.type} · ${new Date(tx.date).toLocaleDateString('es-PY')}</div></div><div class="tx-amt" style="color:${tx.delta>=0?'#4ade80':'#f87171'}">${tx.delta>=0?'+':''}${fmt(tx.delta)}</div></div>`;
