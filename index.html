@@ -227,6 +227,7 @@
       <div class="form-row"><span class="form-label">Monto (Gs.)</span><input type="number" id="i-amount" placeholder="0"></div>
       <div class="form-row"><span class="form-label">Descripción</span><input type="text" id="i-desc" placeholder="Opcional..."></div>
       <div class="form-row"><span class="form-label">Acreditar en</span><select id="i-account"></select></div>
+      <div class="form-row"><span class="form-label">Fecha</span><input type="date" id="i-date" style="flex:1;background:#2a2a2a;color:#f5f0e8;border:1px solid #3d2f0a;border-radius:6px;padding:7px 8px;font-size:13px"></div>
       <div class="form-row"><span class="form-label">Mes / Año</span><div class="two-sel"><select id="i-month"></select><select id="i-year"></select></div></div>
       <button class="btn btn-green" onclick="addIncome()">+ Agregar Ingreso</button>
     </div>
@@ -244,6 +245,7 @@
       <div class="form-row"><span class="form-label">Descontar de</span><select id="e-account"></select></div>
       <div class="form-row"><span class="form-label">Monto (Gs.)</span><input type="number" id="e-amount" placeholder="0"></div>
       <div class="form-row"><span class="form-label">Descripción</span><input type="text" id="e-desc" placeholder="Opcional..."></div>
+      <div class="form-row"><span class="form-label">Fecha</span><input type="date" id="e-date" style="flex:1;background:#2a2a2a;color:#f5f0e8;border:1px solid #3d2f0a;border-radius:6px;padding:7px 8px;font-size:13px"></div>
       <div class="form-row"><span class="form-label">Mes / Año</span><div class="two-sel"><select id="e-month"></select><select id="e-year"></select></div></div>
       <button class="btn btn-red" onclick="addExpense()">+ Registrar Gasto</button>
     </div>
@@ -449,6 +451,21 @@ function initMonthYear() {
   const sy=document.getElementById('sel-year');
   sy.innerHTML=yO.map(o=>`<option value="${o.v}">${o.l}</option>`).join(''); sy.value=filterYear; sy.onchange=()=>{filterYear=+sy.value;render();};
   ['i-month','e-month'].forEach(id=>{const e=document.getElementById(id);e.innerHTML=mO.map(o=>`<option value="${o.v}">${o.l}</option>`).join('');e.value=filterMonth;});
+  // Set today as default date for both forms
+  const todayISO = now.toISOString().split('T')[0];
+  const iDate = document.getElementById('i-date'); if(iDate) iDate.value = todayISO;
+  const eDate = document.getElementById('e-date'); if(eDate) eDate.value = todayISO;
+  // Sync date picker → month/year selectors
+  document.getElementById('i-date').addEventListener('change', function(){
+    const d = new Date(this.value + 'T12:00:00');
+    document.getElementById('i-month').value = d.getMonth();
+    document.getElementById('i-year').value = d.getFullYear();
+  });
+  document.getElementById('e-date').addEventListener('change', function(){
+    const d = new Date(this.value + 'T12:00:00');
+    document.getElementById('e-month').value = d.getMonth();
+    document.getElementById('e-year').value = d.getFullYear();
+  });
   ['i-year','e-year'].forEach(id=>{const e=document.getElementById(id);e.innerHTML=yO.map(o=>`<option value="${o.v}">${o.l}</option>`).join('');e.value=filterYear;});
 }
 
@@ -457,14 +474,18 @@ window.onCatChange = () => { const c=cats().find(x=>x.id===document.getElementBy
 window.addIncome = () => {
   const amt=parseFloat(document.getElementById('i-amount').value); if(!amt) return;
   const acc=document.getElementById('i-account').value;
-  push(ref(db,'/incomes'),{source:document.getElementById('i-source').value,account:acc,amount:amt,description:document.getElementById('i-desc').value,month:+document.getElementById('i-month').value,year:+document.getElementById('i-year').value,date:new Date().toISOString()});
+  const iDateVal = document.getElementById('i-date').value;
+  const iDateObj = iDateVal ? new Date(iDateVal + 'T12:00:00') : new Date();
+  push(ref(db,'/incomes'),{source:document.getElementById('i-source').value,account:acc,amount:amt,description:document.getElementById('i-desc').value,month:+document.getElementById('i-month').value,year:+document.getElementById('i-year').value,date:iDateObj.toISOString()});
   set(ref(db,`/accountBalances/${acc}`),(state.accountBalances[acc]||0)+amt);
   document.getElementById('i-amount').value=''; document.getElementById('i-desc').value='';
 };
 window.addExpense = () => {
   const amt=parseFloat(document.getElementById('e-amount').value); if(!amt) return;
   const acc=document.getElementById('e-account').value;
-  push(ref(db,'/expenses'),{category:document.getElementById('e-category').value,source:document.getElementById('e-source').value,account:acc,amount:amt,description:document.getElementById('e-desc').value,month:+document.getElementById('e-month').value,year:+document.getElementById('e-year').value,date:new Date().toISOString()});
+  const eDateVal = document.getElementById('e-date').value;
+  const eDateObj = eDateVal ? new Date(eDateVal + 'T12:00:00') : new Date();
+  push(ref(db,'/expenses'),{category:document.getElementById('e-category').value,source:document.getElementById('e-source').value,account:acc,amount:amt,description:document.getElementById('e-desc').value,month:+document.getElementById('e-month').value,year:+document.getElementById('e-year').value,date:eDateObj.toISOString()});
   set(ref(db,`/accountBalances/${acc}`),(state.accountBalances[acc]||0)-amt);
   document.getElementById('e-amount').value=''; document.getElementById('e-desc').value='';
 };
@@ -651,7 +672,8 @@ function render() {
   document.getElementById('i-list').innerHTML=fi.length?fi.slice().sort((a,b)=>new Date(b.date)-new Date(a.date)).map(inc=>{
     const s=srcList.find(x=>x.id===inc.source)||{icon:'',label:inc.source,color:'#444'};
     const a=accs().find(x=>x.id===inc.account)||{icon:'',label:inc.account,owner:''};
-    return `<div class="item-row" style="border-left-color:${s.color}"><div><div class="item-main">${s.icon} ${s.label}</div><div class="item-sub">${a.icon} ${a.owner} ${a.label}${inc.description?' · '+inc.description:''}</div></div><div class="item-right"><div class="item-amt" style="color:#4ade80">+${fmt(inc.amount)}</div><button class="del-btn" onclick="deleteIncome('${inc._key}')">✕</button></div></div>`;
+    const incDate = inc.date ? new Date(inc.date).toLocaleDateString('es-PY') : '';
+        return `<div class="item-row" style="border-left-color:${s.color}"><div><div class="item-main">${s.icon} ${s.label}</div><div class="item-sub">${a.icon} ${a.owner} ${a.label}${inc.description?' · '+inc.description:''} <span style="color:#666">· ${incDate}</span></div></div><div class="item-right"><div class="item-amt" style="color:#4ade80">+${fmt(inc.amount)}</div><button class="del-btn" onclick="deleteIncome('${inc._key}')">✕</button></div></div>`;
   }).join(''):'<div class="empty">Sin ingresos este mes</div>';
   document.getElementById('i-total').textContent=fi.length?`Total: ${fmt(totalInc)}`:'';
 
@@ -660,7 +682,8 @@ function render() {
     const c=catList.find(x=>x.id===exp.category)||{icon:'',label:exp.category,color:'#444'};
     const s=srcList.find(x=>x.id===exp.source)||{icon:'',label:exp.source};
     const a=accs().find(x=>x.id===exp.account)||{icon:'',label:exp.account,owner:''};
-    return `<div class="item-row" style="border-left-color:${c.color}"><div><div class="item-main">${c.icon} ${c.label}</div><div class="item-sub">${s.icon} ${s.label} · ${a.icon} ${a.owner} ${a.label}${exp.description?' · '+exp.description:''}</div></div><div class="item-right"><div class="item-amt" style="color:#f87171">-${fmt(exp.amount)}</div><button class="del-btn" onclick="deleteExpense('${exp._key}')">✕</button></div></div>`;
+    const expDate = exp.date ? new Date(exp.date).toLocaleDateString('es-PY') : '';
+        return `<div class="item-row" style="border-left-color:${c.color}"><div><div class="item-main">${c.icon} ${c.label}</div><div class="item-sub">${s.icon} ${s.label} · ${a.icon} ${a.owner} ${a.label}${exp.description?' · '+exp.description:''} <span style="color:#666">· ${expDate}</span></div></div><div class="item-right"><div class="item-amt" style="color:#f87171">-${fmt(exp.amount)}</div><button class="del-btn" onclick="deleteExpense('${exp._key}')">✕</button></div></div>`;
   }).join(''):'<div class="empty">Sin gastos este mes</div>';
   document.getElementById('e-total').textContent=fe.length?`Total: ${fmt(totalExp)}`:'';
 
