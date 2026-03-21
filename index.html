@@ -254,23 +254,16 @@
   <div id="fab-center">
     <div id="fab-backdrop" onclick="closeFab()"></div>
     <!-- Radial menu items -->
-    <div class="fab-radial" id="fab-r1" onclick="fabQuick('ingreso')" style="--angle:-100deg;--dist:80px">
+    <div class="fab-radial" id="fab-r1" onclick="fabQuick('ingreso')" style="--angle:-130deg;--dist:75px">
       <span class="fr-icon">📈</span><span class="fr-label">Ingreso</span>
     </div>
-    <div class="fab-radial" id="fab-r2" onclick="fabQuick('gasto')" style="--angle:-70deg;--dist:80px">
+    <div class="fab-radial" id="fab-r2" onclick="fabQuick('gasto')" style="--angle:-50deg;--dist:75px">
       <span class="fr-icon">📉</span><span class="fr-label">Gasto</span>
     </div>
-    <div class="fab-radial" id="fab-r3" onclick="showTab('gastos',null)" style="--angle:-40deg;--dist:80px">
-      <span class="fr-icon">🔴</span><span class="fr-label">Gastos</span>
-    </div>
-    <div class="fab-radial" id="fab-r4" onclick="showTab('ingresos',null)" style="--angle:-140deg;--dist:80px">
-      <span class="fr-icon">💚</span><span class="fr-label">Ingresos</span>
-    </div>
+
 
     <button id="fab-main" onclick="toggleFab()">+</button>
-    <!-- Hidden buttons for tab tracking -->
-    <button id="bn-gastos-fab" style="display:none"></button>
-    <button id="bn-filem-fab" style="display:none"></button>
+
   </div>
   <button class="bnav-btn" id="bn-cuentas" onclick="showTab('cuentas',this)"><span class="bnav-icon">🏦</span>Cuentas</button>
   <button class="bnav-btn" id="bn-mas" onclick="showTab('mas',this)"><span class="bnav-icon">✦</span>Más</button>
@@ -1194,7 +1187,7 @@ window.toggleFab=()=>{
   document.getElementById('fab-main').classList.toggle('open',fabOpen);
   document.getElementById('fab-backdrop').classList.toggle('open',fabOpen);
   // Staggered radial open/close
-  [1,2,3,4].forEach((n,i)=>{
+  [1,2].forEach((n,i)=>{
     const el=document.getElementById('fab-r'+n);
     if(!el)return;
     if(fabOpen){
@@ -1208,7 +1201,7 @@ window.closeFab=()=>{
   fabOpen=false;
   document.getElementById('fab-main').classList.remove('open');
   document.getElementById('fab-backdrop').classList.remove('open');
-  [1,2,3,4].forEach(n=>{
+  [1,2].forEach(n=>{
     const el=document.getElementById('fab-r'+n);
     if(el)el.classList.remove('open');
   });
