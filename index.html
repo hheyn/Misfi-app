@@ -250,7 +250,7 @@
 <!-- BOTTOM NAV -->
 <div id="bottom-nav">
   <button class="bnav-btn active" id="bn-dashboard" onclick="showTab('dashboard',this)"><span class="bnav-icon">📊</span>Inicio</button>
-  <button class="bnav-btn" id="bn-ingresos" onclick="showTab('ingresos',this)"><span class="bnav-icon">💚</span>Ingresos</button>
+  <button class="bnav-btn" id="bn-filem" onclick="showTab('filem',this)"><span class="bnav-icon">🎬</span>Filem</button>
   <div id="fab-center">
     <div id="fab-backdrop" onclick="closeFab()"></div>
     <!-- Radial menu items -->
@@ -260,15 +260,13 @@
     <div class="fab-radial" id="fab-r2" onclick="fabQuick('gasto')" style="--angle:-70deg;--dist:80px">
       <span class="fr-icon">📉</span><span class="fr-label">Gasto</span>
     </div>
-    <div class="fab-radial" id="fab-r3" onclick="showTab('gastos',document.getElementById('bn-gastos-fab'))" style="--angle:-40deg;--dist:80px">
+    <div class="fab-radial" id="fab-r3" onclick="showTab('gastos',null)" style="--angle:-40deg;--dist:80px">
       <span class="fr-icon">🔴</span><span class="fr-label">Gastos</span>
     </div>
-    <div class="fab-radial" id="fab-r4" onclick="showTab('filem',document.getElementById('bn-filem-fab'))" style="--angle:-140deg;--dist:80px">
-      <span class="fr-icon">🎬</span><span class="fr-label">Filem</span>
+    <div class="fab-radial" id="fab-r4" onclick="showTab('ingresos',null)" style="--angle:-140deg;--dist:80px">
+      <span class="fr-icon">💚</span><span class="fr-label">Ingresos</span>
     </div>
-    <div class="fab-radial" id="fab-r5" onclick="showTab('reporte',null)" style="--angle:-110deg;--dist:80px">
-      <span class="fr-icon">📅</span><span class="fr-label">Reporte</span>
-    </div>
+
     <button id="fab-main" onclick="toggleFab()">+</button>
     <!-- Hidden buttons for tab tracking -->
     <button id="bn-gastos-fab" style="display:none"></button>
@@ -289,13 +287,13 @@
     <button onclick="showTab('reporte',null)">📅 Reporte por fecha</button>
   </div>
   <div class="cards">
-    <div class="card" style="border:1px solid #d8f3dc"><div class="card-icon">📈</div><div class="card-label">Ingresos</div><div class="card-val" style="color:var(--green-mid)" id="d-income">—</div></div>
-    <div class="card" style="border:1px solid #ffeaea"><div class="card-icon">📉</div><div class="card-label">Gastos</div><div class="card-val" style="color:var(--danger)" id="d-expense">—</div></div>
+    <div class="card" style="border:1px solid #d8f3dc;cursor:pointer;transition:transform .15s,box-shadow .15s" onclick="showTab('ingresos',null)" ontouchstart="this.style.transform='scale(.96)'" ontouchend="this.style.transform=''"><div class="card-icon">📈</div><div class="card-label" style="color:var(--green-mid)">Ingresos ›</div><div class="card-val" style="color:var(--green-mid)" id="d-income">—</div></div>
+    <div class="card" style="border:1px solid #ffeaea;cursor:pointer;transition:transform .15s,box-shadow .15s" onclick="showTab('gastos',null)" ontouchstart="this.style.transform='scale(.96)'" ontouchend="this.style.transform=''"><div class="card-icon">📉</div><div class="card-label" style="color:var(--danger)">Gastos ›</div><div class="card-val" style="color:var(--danger)" id="d-expense">—</div></div>
     <div class="card" id="d-bal-card" style="border:1px solid var(--border)"><div class="card-icon" id="d-bal-icon">✅</div><div class="card-label" id="d-bal-label">Superávit</div><div class="card-val" id="d-balance">—</div></div>
   </div>
-  <div class="section-title" id="d-income-title">Ingresos por fuente</div>
+  <div class="section-title" id="d-income-title" style="cursor:pointer" onclick="showTab('ingresos',null)">Ingresos por fuente <span style="color:var(--green-lite);font-size:13px">›</span></div>
   <div id="d-income-bars"></div>
-  <div class="section-title" id="d-expense-title">Gastos por categoría</div>
+  <div class="section-title" id="d-expense-title" style="cursor:pointer" onclick="showTab('gastos',null)">Gastos por categoría <span style="color:var(--danger);font-size:13px">›</span></div>
   <div id="d-expense-bars"></div>
   <div class="section-title">Evolución 6 meses</div>
   <div class="trend-wrap"><div class="trend-chart" id="trend-chart"></div></div>
@@ -1196,7 +1194,7 @@ window.toggleFab=()=>{
   document.getElementById('fab-main').classList.toggle('open',fabOpen);
   document.getElementById('fab-backdrop').classList.toggle('open',fabOpen);
   // Staggered radial open/close
-  [1,2,3,4,5].forEach((n,i)=>{
+  [1,2,3,4].forEach((n,i)=>{
     const el=document.getElementById('fab-r'+n);
     if(!el)return;
     if(fabOpen){
@@ -1210,7 +1208,7 @@ window.closeFab=()=>{
   fabOpen=false;
   document.getElementById('fab-main').classList.remove('open');
   document.getElementById('fab-backdrop').classList.remove('open');
-  [1,2,3,4,5].forEach(n=>{
+  [1,2,3,4].forEach(n=>{
     const el=document.getElementById('fab-r'+n);
     if(el)el.classList.remove('open');
   });
@@ -1452,7 +1450,7 @@ window.showTab=(id,btn)=>{
   document.getElementById('tab-'+id).classList.add('active');
   if(btn) btn.classList.add('active');
   // Sync bottom nav active state
-  const map={dashboard:'bn-dashboard',ingresos:'bn-ingresos',cuentas:'bn-cuentas',mas:'bn-mas'};
+  const map={dashboard:'bn-dashboard',filem:'bn-filem',cuentas:'bn-cuentas',mas:'bn-mas'};
   if(map[id]){const el=document.getElementById(map[id]);if(el)el.classList.add('active');}
   if(id==='filem') renderCRM();
   if(id==='mas') initComparativo();
