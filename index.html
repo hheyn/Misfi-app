@@ -162,6 +162,13 @@
     #fab-backdrop.open{display:block}
 
 
+    /* ── Filtros de módulo ── */
+    .filter-chips{display:flex;gap:6px;flex-wrap:nowrap;padding:8px 0 4px;margin-bottom:4px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+    .filter-chips::-webkit-scrollbar{display:none}
+    .fchip{display:inline-flex;align-items:center;gap:4px;padding:6px 13px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--surface);color:var(--text2);white-space:nowrap;transition:all .15s;user-select:none;flex-shrink:0}
+    .fchip.active{background:var(--green);color:#fff;border-color:var(--green)}
+    .fchip:active{transform:scale(.95)}
+
     /* Reporte por fecha */
     .report-date-box{background:var(--surface);border-radius:16px;padding:16px;margin-bottom:16px;box-shadow:var(--shadow);border:1px solid var(--border)}
     .report-date-box .rdb-row{display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
@@ -310,6 +317,7 @@
     <button class="btn btn-green" onclick="addIncome()">+ Agregar Ingreso</button>
   </div>
   <div class="section-title" id="i-list-title">Ingresos del mes</div>
+  <div class="filter-chips" id="i-filter-chips"></div>
   <div id="i-list"></div>
   <div class="month-total" id="i-total" style="color:var(--green-mid)"></div>
 </div>
@@ -329,6 +337,7 @@
     <button class="btn btn-red" onclick="addExpense()">+ Registrar Gasto</button>
   </div>
   <div class="section-title" id="e-list-title">Gastos del mes</div>
+  <div class="filter-chips" id="e-filter-chips"></div>
   <div id="e-list"></div>
   <div class="month-total" id="e-total" style="color:var(--danger)"></div>
 </div>
@@ -494,6 +503,8 @@ const fmtPlain=n=>new Intl.NumberFormat("es-PY",{maximumFractionDigits:0}).forma
 
 const now=new Date();
 let filterMonth=now.getMonth(),filterYear=now.getFullYear();
+let filterIncomeSource=null;   // null = todos
+let filterExpenseCat=null;     // null = todas
 let state={incomes:{},expenses:{},accountBalances:{},accountTransactions:{},transfers:{},budgets:{},notes:{},closedMonths:{},crmData:{},sources:{},categories:{},accounts:{}};
 
 // ── HELPERS ──
@@ -548,9 +559,9 @@ function initMonthYear(){
   const mO=MONTHS.map((m,i)=>({v:i,l:m}));
   const yO=[2023,2024,2025,2026,2027].map(y=>({v:y,l:y}));
   const sm=document.getElementById('sel-month');
-  sm.innerHTML=mO.map(o=>`<option value="${o.v}">${o.l}</option>`).join('');sm.value=filterMonth;sm.onchange=()=>{filterMonth=+sm.value;render();};
+  sm.innerHTML=mO.map(o=>`<option value="${o.v}">${o.l}</option>`).join('');sm.value=filterMonth;sm.onchange=()=>{filterMonth=+sm.value;filterIncomeSource=null;filterExpenseCat=null;render();};
   const sy=document.getElementById('sel-year');
-  sy.innerHTML=yO.map(o=>`<option value="${o.v}">${o.l}</option>`).join('');sy.value=filterYear;sy.onchange=()=>{filterYear=+sy.value;render();};
+  sy.innerHTML=yO.map(o=>`<option value="${o.v}">${o.l}</option>`).join('');sy.value=filterYear;sy.onchange=()=>{filterYear=+sy.value;filterIncomeSource=null;filterExpenseCat=null;render();};
   ['i-month','e-month'].forEach(id=>{const e=document.getElementById(id);e.innerHTML=mO.map(o=>`<option value="${o.v}">${o.l}</option>`).join('');e.value=filterMonth;});
   ['i-year','e-year'].forEach(id=>{const e=document.getElementById(id);e.innerHTML=yO.map(o=>`<option value="${o.v}">${o.l}</option>`).join('');e.value=filterYear;});
   const todayISO=now.toISOString().split('T')[0];
@@ -873,6 +884,33 @@ function renderTrend(){
 }
 
 // ── RENDER ──
+// ── FILTER CHIPS ──
+function renderIncomeFilters(){
+  const srcList=sources();
+  const fi=incList().filter(i=>i.month===filterMonth&&i.year===filterYear);
+  // Only show sources that have entries this month
+  const activeSrcs=srcList.filter(s=>fi.some(i=>i.source===s.id));
+  const el=document.getElementById('i-filter-chips');
+  if(!el)return;
+  if(!activeSrcs.length){el.innerHTML='';return;}
+  el.innerHTML=
+    `<span class="fchip${filterIncomeSource===null?' active':''}" onclick="setIncFilter(null)">Todos</span>`+
+    activeSrcs.map(s=>`<span class="fchip${filterIncomeSource===s.id?' active':''}" onclick="setIncFilter('${s.id}')" style="${filterIncomeSource===s.id?'':'border-color:'+s.color+'66'}">${s.icon} ${s.label}</span>`).join('');
+}
+function renderExpenseFilters(){
+  const catList=cats();
+  const fe=expList().filter(e=>e.month===filterMonth&&e.year===filterYear);
+  const activeCats=catList.filter(c=>fe.some(e=>e.category===c.id));
+  const el=document.getElementById('e-filter-chips');
+  if(!el)return;
+  if(!activeCats.length){el.innerHTML='';return;}
+  el.innerHTML=
+    `<span class="fchip${filterExpenseCat===null?' active':''}" onclick="setExpFilter(null)">Todos</span>`+
+    activeCats.map(c=>`<span class="fchip${filterExpenseCat===c.id?' active':''}" onclick="setExpFilter('${c.id}')" style="${filterExpenseCat===c.id?'':'border-color:'+c.color+'66'}">${c.icon} ${c.label}</span>`).join('');
+}
+window.setIncFilter=(id)=>{filterIncomeSource=id;render();};
+window.setExpFilter=(id)=>{filterExpenseCat=id;render();};
+
 function render(){
   const fi=incList().filter(i=>i.month===filterMonth&&i.year===filterYear);
   const fe=expList().filter(e=>e.month===filterMonth&&e.year===filterYear);
@@ -929,25 +967,35 @@ function render(){
   document.getElementById('c-total').textContent=fmt(totAll);
 
   // Income list
-  document.getElementById('i-list-title').textContent=`Ingresos — ${mesLabel}`;
-  document.getElementById('i-list').innerHTML=fi.length?fi.slice().sort((a,b)=>new Date(b.date)-new Date(a.date)).map(inc=>{
+  // Income filters
+  renderIncomeFilters();
+  const fiFiltered=filterIncomeSource?fi.filter(i=>i.source===filterIncomeSource):fi;
+  const filteredIncTotal=fiFiltered.reduce((s,i)=>s+i.amount,0);
+  const filterIncLabel=filterIncomeSource?(sources().find(s=>s.id===filterIncomeSource)||{label:filterIncomeSource}).label:null;
+  document.getElementById('i-list-title').textContent=filterIncLabel?`Ingresos — ${filterIncLabel} · ${mesLabel}`:`Ingresos — ${mesLabel}`;
+  document.getElementById('i-list').innerHTML=fiFiltered.length?fiFiltered.slice().sort((a,b)=>new Date(b.date)-new Date(a.date)).map(inc=>{
     const s=srcList.find(x=>x.id===inc.source)||{icon:'',label:inc.source,color:'#ccc'};
     const a=accs().find(x=>x.id===inc.account)||{icon:'',label:inc.account,owner:''};
     const d=inc.date?new Date(inc.date).toLocaleDateString('es-PY'):'';
     return `<div class="item-row" style="border-left-color:${s.color}"><div><div class="item-main">${s.icon} ${s.label}</div><div class="item-sub">${a.icon} ${a.owner} ${a.label}${inc.description?' · '+inc.description:''} <span style="color:var(--text3)">· ${d}</span></div></div><div class="item-right"><div class="item-amt" style="color:var(--green-mid)">+${fmt(inc.amount)}</div><button class="edit-btn" onclick="editIncome('${inc._key}')">✏️</button><button class="del-btn" onclick="deleteIncome('${inc._key}')">✕</button></div></div>`;
-  }).join(''):'<div class="empty">Sin ingresos este mes</div>';
-  document.getElementById('i-total').textContent=fi.length?`Total: ${fmt(totalInc)}`:'';
+  }).join(''):`<div class="empty">Sin ingresos${filterIncLabel?' de '+filterIncLabel:''} este mes</div>`;
+  document.getElementById('i-total').textContent=fiFiltered.length?`${filterIncLabel?filterIncLabel+' · ':''}Total: ${fmt(filteredIncTotal)}`:'';
 
   // Expense list
-  document.getElementById('e-list-title').textContent=`Gastos — ${mesLabel}`;
-  document.getElementById('e-list').innerHTML=fe.length?fe.slice().sort((a,b)=>new Date(b.date)-new Date(a.date)).map(exp=>{
+  // Expense filters
+  renderExpenseFilters();
+  const feFiltered=filterExpenseCat?fe.filter(e=>e.category===filterExpenseCat):fe;
+  const filteredExpTotal=feFiltered.reduce((s,e)=>s+e.amount,0);
+  const filterExpLabel=filterExpenseCat?(cats().find(c=>c.id===filterExpenseCat)||{label:filterExpenseCat}).label:null;
+  document.getElementById('e-list-title').textContent=filterExpLabel?`Gastos — ${filterExpLabel} · ${mesLabel}`:`Gastos — ${mesLabel}`;
+  document.getElementById('e-list').innerHTML=feFiltered.length?feFiltered.slice().sort((a,b)=>new Date(b.date)-new Date(a.date)).map(exp=>{
     const c=catList.find(x=>x.id===exp.category)||{icon:'',label:exp.category,color:'#ccc'};
     const s=srcList.find(x=>x.id===exp.source)||{icon:'',label:exp.source};
     const a=accs().find(x=>x.id===exp.account)||{icon:'',label:exp.account,owner:''};
     const d=exp.date?new Date(exp.date).toLocaleDateString('es-PY'):'';
     return `<div class="item-row" style="border-left-color:${c.color}"><div><div class="item-main">${c.icon} ${c.label}</div><div class="item-sub">${s.icon} ${s.label} · ${a.icon} ${a.owner} ${a.label}${exp.description?' · '+exp.description:''} <span style="color:var(--text3)">· ${d}</span></div></div><div class="item-right"><div class="item-amt" style="color:var(--danger)">-${fmt(exp.amount)}</div><button class="edit-btn" onclick="editExpense('${exp._key}')">✏️</button><button class="del-btn" onclick="deleteExpense('${exp._key}')">✕</button></div></div>`;
-  }).join(''):'<div class="empty">Sin gastos este mes</div>';
-  document.getElementById('e-total').textContent=fe.length?`Total: ${fmt(totalExp)}`:'';
+  }).join(''):`<div class="empty">Sin gastos${filterExpLabel?' de '+filterExpLabel:''} este mes</div>`;
+  document.getElementById('e-total').textContent=feFiltered.length?`${filterExpLabel?filterExpLabel+' · ':''}Total: ${fmt(filteredExpTotal)}`:'';
 
   // Movements
   const allMov=[...txList().map(t=>({...t,_tipo:'ajuste'})),...trList().map(t=>({...t,_tipo:'transfer'}))].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,20);
