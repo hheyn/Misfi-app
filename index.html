@@ -142,6 +142,28 @@
     .export-bar button{flex:1;padding:10px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;gap:6px}
     .export-bar button:active{background:var(--surface2)}
 
+    /* Reporte por fecha */
+    .report-date-box{background:var(--surface);border-radius:16px;padding:16px;margin-bottom:16px;box-shadow:var(--shadow);border:1px solid var(--border)}
+    .report-date-box .rdb-row{display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+    .report-date-box label{font-size:12px;font-weight:600;color:var(--text2);min-width:70px}
+    .report-date-box input[type=date]{flex:1;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:8px 10px;font-size:13px;min-width:140px}
+    .rep-section{margin-bottom:20px}
+    .rep-section h3{font-size:12px;font-weight:700;color:var(--text2);letter-spacing:.8px;text-transform:uppercase;border-bottom:1px solid var(--border);padding-bottom:6px;margin-bottom:10px}
+    .rep-acc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px}
+    .rep-acc-card{background:var(--surface2);border-radius:10px;padding:10px 12px;border-left:3px solid #ccc}
+    .rep-acc-card .rac-label{font-size:11px;color:var(--text3);font-weight:500}
+    .rep-acc-card .rac-val{font-size:14px;font-weight:700;margin-top:4px}
+    .rep-totals{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+    .rep-total-box{flex:1;min-width:120px;background:var(--green);border-radius:12px;padding:12px 14px;color:#fff}
+    .rep-total-box.danger{background:var(--danger)}
+    .rep-total-box.neutral{background:var(--green-mid)}
+    .rep-total-box .rtb-label{font-size:11px;color:rgba(255,255,255,.7);font-weight:500}
+    .rep-total-box .rtb-val{font-size:16px;font-weight:700;margin-top:4px}
+    .rep-mov-item{background:var(--surface);border-radius:10px;padding:10px 13px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center;border-left:3px solid #ccc;box-shadow:var(--shadow)}
+    .rep-mov-item .rmi-main{font-size:13px;font-weight:600}
+    .rep-mov-item .rmi-sub{font-size:11px;color:var(--text3);margin-top:2px}
+    .rep-mov-item .rmi-amt{font-size:13px;font-weight:700;flex-shrink:0}
+
     .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
     .modal-bg.open{display:flex}
     .modal{background:var(--surface);border-radius:20px;padding:22px;width:92%;max-width:390px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-md)}
@@ -208,6 +230,7 @@
   <button class="nav-btn" onclick="showTab('ingresos',this)"><span class="nav-icon">💚</span>Ingresos</button>
   <button class="nav-btn" onclick="showTab('gastos',this)"><span class="nav-icon">🔴</span>Gastos</button>
   <button class="nav-btn" onclick="showTab('cuentas',this)"><span class="nav-icon">🏦</span>Cuentas</button>
+  <button class="nav-btn" onclick="showTab('reporte',this)"><span class="nav-icon">📅</span>Reporte</button>
   <button class="nav-btn" onclick="showTab('mas',this)"><span class="nav-icon">✦</span>Más</button>
 </div>
 <div id="content">
@@ -219,6 +242,7 @@
   <div class="export-bar">
     <button onclick="exportCSV()">📄 Exportar CSV</button>
     <button onclick="exportPDF()">🖨️ Exportar PDF</button>
+    <button onclick="showTab('reporte',document.querySelectorAll('.nav-btn')[4])">📅 Reporte por fecha</button>
   </div>
   <div class="cards">
     <div class="card" style="border:1px solid #d8f3dc"><div class="card-icon">📈</div><div class="card-label">Ingresos</div><div class="card-val" style="color:var(--green-mid)" id="d-income">—</div></div>
@@ -303,6 +327,19 @@
   </div>
   <div class="section-title">Últimos movimientos</div>
   <div id="c-txlist"></div>
+</div>
+
+<!-- REPORTE POR FECHA -->
+<div id="tab-reporte" class="tab">
+  <div class="report-date-box">
+    <div class="rdb-row">
+      <label>Fecha</label>
+      <input type="date" id="rep-date">
+      <button class="btn btn-green btn-sm" onclick="generarReporte()" style="margin-top:0">Ver reporte</button>
+    </div>
+    <div style="font-size:11px;color:var(--text3)">Muestra todos los movimientos del día y el saldo de cada cuenta calculado hasta esa fecha.</div>
+  </div>
+  <div id="rep-output"></div>
 </div>
 
 <!-- MÁS -->
@@ -449,6 +486,10 @@ function initMonthYear(){
   const todayISO=now.toISOString().split('T')[0];
   const iDate=document.getElementById('i-date');if(iDate)iDate.value=todayISO;
   const eDate=document.getElementById('e-date');if(eDate)eDate.value=todayISO;
+  // Default report date = today
+  const repDateEl=document.getElementById('rep-date');
+  if(repDateEl) repDateEl.value=todayISO;
+
   document.getElementById('i-date').addEventListener('change',function(){const d=new Date(this.value+'T12:00:00');document.getElementById('i-month').value=d.getMonth();document.getElementById('i-year').value=d.getFullYear();});
   document.getElementById('e-date').addEventListener('change',function(){const d=new Date(this.value+'T12:00:00');document.getElementById('e-month').value=d.getMonth();document.getElementById('e-year').value=d.getFullYear();});
 }
@@ -878,6 +919,191 @@ function render(){
   document.getElementById('cfg-cats').innerHTML=catList.map(c=>`<div class="custom-item"><span>${c.icon} <span style="color:${c.color};font-weight:600">${c.label}</span></span><button class="del-btn" onclick="deleteCat('${c.id}')">✕</button></div>`).join('');
   document.getElementById('cfg-accounts').innerHTML=accs().map(a=>`<div class="custom-item"><span>${a.icon} <span style="font-weight:600">${a.owner} — ${a.label}</span></span><button class="del-btn" onclick="deleteAccount('${a.id}')">✕</button></div>`).join('');
 }
+
+// ── REPORTE POR FECHA ──
+window.generarReporte=()=>{
+  const dateVal=document.getElementById('rep-date').value;
+  if(!dateVal){alert('Elegí una fecha');return;}
+  const repDate=new Date(dateVal+'T23:59:59'); // fin del día
+  const repDateStart=new Date(dateVal+'T00:00:00');
+  const repDateStr=repDate.toLocaleDateString('es-PY');
+  const srcList=sources();
+  const catList=cats();
+  const accList=accs();
+
+  // Movimientos DEL DÍA exacto
+  const fi=incList().filter(i=>{
+    if(!i.date)return false;
+    const d=new Date(i.date);
+    return d>=repDateStart&&d<=repDate;
+  });
+  const fe=expList().filter(e=>{
+    if(!e.date)return false;
+    const d=new Date(e.date);
+    return d>=repDateStart&&d<=repDate;
+  });
+  const ft=trList().filter(t=>{
+    if(!t.date)return false;
+    const d=new Date(t.date);
+    return d>=repDateStart&&d<=repDate;
+  });
+  const fx=txList().filter(t=>{
+    if(!t.date)return false;
+    const d=new Date(t.date);
+    return d>=repDateStart&&d<=repDate;
+  });
+
+  // Saldos calculados HASTA ese día (reconstruidos desde cero con todos los movimientos hasta repDate)
+  // Partimos del saldo actual y restamos/sumamos todo lo que ocurrió DESPUÉS de repDate
+  const balAtDate={};
+  accList.forEach(a=>{ balAtDate[a.id]=state.accountBalances[a.id]||0; });
+
+  // Restar ingresos posteriores a repDate
+  incList().filter(i=>i.date&&new Date(i.date)>repDate).forEach(i=>{
+    if(balAtDate[i.account]!==undefined) balAtDate[i.account]-=i.amount;
+  });
+  // Sumar gastos posteriores a repDate
+  expList().filter(e=>e.date&&new Date(e.date)>repDate).forEach(e=>{
+    if(balAtDate[e.account]!==undefined) balAtDate[e.account]+=e.amount;
+  });
+  // Revertir transferencias posteriores a repDate
+  trList().filter(t=>t.date&&new Date(t.date)>repDate).forEach(t=>{
+    if(balAtDate[t.from]!==undefined) balAtDate[t.from]+=t.amount;
+    if(balAtDate[t.to]!==undefined) balAtDate[t.to]-=t.amount;
+  });
+  // Revertir ajustes manuales posteriores a repDate
+  txList().filter(t=>t.date&&new Date(t.date)>repDate).forEach(t=>{
+    if(balAtDate[t.account]!==undefined) balAtDate[t.account]-=t.delta;
+  });
+
+  const hecA=accList.filter(a=>a.owner==='Héctor');
+  const romA=accList.filter(a=>a.owner==='Romina');
+  const totHec=hecA.reduce((s,a)=>s+(balAtDate[a.id]||0),0);
+  const totRom=romA.reduce((s,a)=>s+(balAtDate[a.id]||0),0);
+  const totAll=totHec+totRom;
+  const totalInc=fi.reduce((s,i)=>s+i.amount,0);
+  const totalExp=fe.reduce((s,e)=>s+e.amount,0);
+
+  const accCard=a=>`<div class="rep-acc-card" style="border-left-color:${a.color}">
+    <div class="rac-label">${a.icon} ${a.label}</div>
+    <div class="rac-val" style="color:${(balAtDate[a.id]||0)>=0?'var(--green-mid)':'var(--danger)'}">${fmt(balAtDate[a.id])}</div>
+  </div>`;
+
+  const incRows=fi.length?fi.sort((a,b)=>new Date(a.date)-new Date(b.date)).map(i=>{
+    const s=srcList.find(x=>x.id===i.source)||{icon:'',label:i.source,color:'#52b788'};
+    const a=accList.find(x=>x.id===i.account)||{label:i.account,owner:''};
+    return `<div class="rep-mov-item" style="border-left-color:${s.color}">
+      <div><div class="rmi-main">${s.icon} ${s.label}</div><div class="rmi-sub">${a.owner} — ${a.label}${i.description?' · '+i.description:''}</div></div>
+      <div class="rmi-amt" style="color:var(--green-mid)">+${fmt(i.amount)}</div>
+    </div>`;
+  }).join(''):'<div class="empty">Sin ingresos este día</div>';
+
+  const expRows=fe.length?fe.sort((a,b)=>new Date(a.date)-new Date(b.date)).map(e=>{
+    const c=catList.find(x=>x.id===e.category)||{icon:'',label:e.category,color:'#e63946'};
+    const a=accList.find(x=>x.id===e.account)||{label:e.account,owner:''};
+    const s=srcList.find(x=>x.id===e.source)||{label:e.source};
+    return `<div class="rep-mov-item" style="border-left-color:${c.color}">
+      <div><div class="rmi-main">${c.icon} ${c.label}</div><div class="rmi-sub">${s.label} · ${a.owner} — ${a.label}${e.description?' · '+e.description:''}</div></div>
+      <div class="rmi-amt" style="color:var(--danger)">-${fmt(e.amount)}</div>
+    </div>`;
+  }).join(''):'<div class="empty">Sin gastos este día</div>';
+
+  const trRows=[
+    ...ft.map(t=>{
+      const fa=accList.find(x=>x.id===t.from)||{label:t.from,owner:''};
+      const ta=accList.find(x=>x.id===t.to)||{label:t.to,owner:''};
+      return `<div class="rep-mov-item" style="border-left-color:#1565c0">
+        <div><div class="rmi-main">⇄ ${fa.owner} ${fa.label} → ${ta.owner} ${ta.label}</div><div class="rmi-sub">${t.description||'Transferencia'}</div></div>
+        <div class="rmi-amt" style="color:#1565c0">${fmt(t.amount)}</div>
+      </div>`;
+    }),
+    ...fx.map(t=>{
+      const a=accList.find(x=>x.id===t.account)||{label:t.account,owner:''};
+      return `<div class="rep-mov-item" style="border-left-color:${t.delta>=0?'var(--green-lite)':'#f59e0b'}">
+        <div><div class="rmi-main">${a.owner} — ${a.label}</div><div class="rmi-sub">${t.description||t.type}</div></div>
+        <div class="rmi-amt" style="color:${t.delta>=0?'var(--green-mid)':'var(--danger)'}">${t.delta>=0?'+':''}${fmt(t.delta)}</div>
+      </div>`;
+    })
+  ].join('')||'<div class="empty">Sin transferencias ni ajustes este día</div>';
+
+  const hasMovements=fi.length||fe.length||ft.length||fx.length;
+
+  document.getElementById('rep-output').innerHTML=`
+    <div style="font-size:13px;color:var(--text2);margin-bottom:14px;font-weight:600">📅 Reporte al ${repDateStr}</div>
+
+    <div class="rep-totals">
+      <div class="rep-total-box"><div class="rtb-label">Total en cuentas</div><div class="rtb-val">${fmt(totAll)}</div></div>
+      <div class="rep-total-box neutral"><div class="rtb-label">Héctor</div><div class="rtb-val">${fmt(totHec)}</div></div>
+      <div class="rep-total-box neutral" style="background:var(--green-lite)"><div class="rtb-label">Romina</div><div class="rtb-val">${fmt(totRom)}</div></div>
+    </div>
+
+    ${hasMovements?`
+    <div class="rep-totals">
+      <div class="rep-total-box" style="background:var(--green-mid)"><div class="rtb-label">Ingresos del día</div><div class="rtb-val">${fmt(totalInc)}</div></div>
+      <div class="rep-total-box danger"><div class="rtb-label">Gastos del día</div><div class="rtb-val">${fmt(totalExp)}</div></div>
+    </div>`:''}
+
+    <div class="rep-section"><h3>Cuentas — Héctor</h3><div class="rep-acc-grid">${hecA.map(accCard).join('')}</div></div>
+    <div class="rep-section"><h3>Cuentas — Romina</h3><div class="rep-acc-grid">${romA.map(accCard).join('')}</div></div>
+
+    <div class="rep-section"><h3>📈 Ingresos del día</h3>${incRows}</div>
+    <div class="rep-section"><h3>📉 Gastos del día</h3>${expRows}</div>
+    <div class="rep-section"><h3>⇄ Transferencias y ajustes del día</h3>${trRows}</div>
+
+    <button class="btn btn-green" style="margin-top:4px" onclick="exportReportePDF('${dateVal}')">🖨️ Exportar este reporte como PDF</button>
+  `;
+};
+
+window.exportReportePDF=(dateVal)=>{
+  const repDate=new Date(dateVal+'T23:59:59');
+  const repDateStart=new Date(dateVal+'T00:00:00');
+  const repDateStr=repDate.toLocaleDateString('es-PY');
+  const srcList=sources();const catList=cats();const accList=accs();
+
+  const fi=incList().filter(i=>i.date&&new Date(i.date)>=repDateStart&&new Date(i.date)<=repDate);
+  const fe=expList().filter(e=>e.date&&new Date(e.date)>=repDateStart&&new Date(e.date)<=repDate);
+
+  const balAtDate={};
+  accList.forEach(a=>{balAtDate[a.id]=state.accountBalances[a.id]||0;});
+  incList().filter(i=>i.date&&new Date(i.date)>repDate).forEach(i=>{if(balAtDate[i.account]!==undefined)balAtDate[i.account]-=i.amount;});
+  expList().filter(e=>e.date&&new Date(e.date)>repDate).forEach(e=>{if(balAtDate[e.account]!==undefined)balAtDate[e.account]+=e.amount;});
+  trList().filter(t=>t.date&&new Date(t.date)>repDate).forEach(t=>{if(balAtDate[t.from]!==undefined)balAtDate[t.from]+=t.amount;if(balAtDate[t.to]!==undefined)balAtDate[t.to]-=t.amount;});
+  txList().filter(t=>t.date&&new Date(t.date)>repDate).forEach(t=>{if(balAtDate[t.account]!==undefined)balAtDate[t.account]-=t.delta;});
+
+  const hecA=accList.filter(a=>a.owner==='Héctor');
+  const romA=accList.filter(a=>a.owner==='Romina');
+  const totHec=hecA.reduce((s,a)=>s+(balAtDate[a.id]||0),0);
+  const totRom=romA.reduce((s,a)=>s+(balAtDate[a.id]||0),0);
+  const totAll=totHec+totRom;
+  const totalInc=fi.reduce((s,i)=>s+i.amount,0);
+  const totalExp=fe.reduce((s,e)=>s+e.amount,0);
+
+  const accRows=owner=>accList.filter(a=>a.owner===owner).map(a=>`<tr><td>${a.icon} ${a.label}</td><td style="font-weight:bold;color:${(balAtDate[a.id]||0)>=0?'#2d6a4f':'#e63946'};text-align:right">${fmtPlain(balAtDate[a.id])}</td></tr>`).join('');
+  const incRowsPDF=fi.map(i=>{const s=srcList.find(x=>x.id===i.source)||{label:i.source};const a=accList.find(x=>x.id===i.account)||{label:i.account,owner:''};return `<tr><td>${s.label}</td><td>${i.description||'—'}</td><td>${a.owner} ${a.label}</td><td style="color:green;font-weight:bold;text-align:right">+${fmtPlain(i.amount)}</td></tr>`;}).join('');
+  const expRowsPDF=fe.map(e=>{const c=catList.find(x=>x.id===e.category)||{label:e.category};const a=accList.find(x=>x.id===e.account)||{label:e.account,owner:''};const s=srcList.find(x=>x.id===e.source)||{label:e.source};return `<tr><td>${c.label}</td><td>${e.description||'—'}</td><td>${s.label} · ${a.owner} ${a.label}</td><td style="color:red;font-weight:bold;text-align:right">-${fmtPlain(e.amount)}</td></tr>`;}).join('');
+
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Reporte ${repDateStr}</title>
+  <style>body{font-family:Arial,sans-serif;padding:24px;color:#1a2e22}h1{color:#1a4731}h2{color:#2d6a4f;margin-top:20px;font-size:14px;text-transform:uppercase;letter-spacing:1px}table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px}th{background:#1a4731;color:#fff;padding:8px;text-align:left}td{padding:7px 8px;border-bottom:1px solid #dde8e1}.summary{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap}.box{background:#f4f6f4;border-radius:8px;padding:12px 18px;min-width:130px}.box .lbl{font-size:11px;color:#5a7a66}.box .val{font-size:17px;font-weight:bold;margin-top:4px}@media print{button{display:none}}</style></head>
+  <body>
+  <h1>💰 Reporte por fecha — ${repDateStr}</h1>
+  <p style="color:#5a7a66">Generado el ${new Date().toLocaleDateString('es-PY')}</p>
+  <div class="summary">
+    <div class="box"><div class="lbl">Total en cuentas</div><div class="val" style="color:#1a4731">Gs. ${fmtPlain(totAll)}</div></div>
+    <div class="box"><div class="lbl">Héctor</div><div class="val" style="color:#2d6a4f">Gs. ${fmtPlain(totHec)}</div></div>
+    <div class="box"><div class="lbl">Romina</div><div class="val" style="color:#52b788">Gs. ${fmtPlain(totRom)}</div></div>
+    <div class="box"><div class="lbl">Ingresos del día</div><div class="val" style="color:#2d6a4f">Gs. ${fmtPlain(totalInc)}</div></div>
+    <div class="box"><div class="lbl">Gastos del día</div><div class="val" style="color:#e63946">Gs. ${fmtPlain(totalExp)}</div></div>
+  </div>
+  <h2>Cuentas — Héctor</h2>
+  <table><thead><tr><th>Cuenta</th><th style="text-align:right">Saldo al ${repDateStr}</th></tr></thead><tbody>${accRows('Héctor')}</tbody></table>
+  <h2>Cuentas — Romina</h2>
+  <table><thead><tr><th>Cuenta</th><th style="text-align:right">Saldo al ${repDateStr}</th></tr></thead><tbody>${accRows('Romina')}</tbody></table>
+  ${fi.length?`<h2>📈 Ingresos del día</h2><table><thead><tr><th>Fuente</th><th>Descripción</th><th>Cuenta</th><th style="text-align:right">Monto (Gs.)</th></tr></thead><tbody>${incRowsPDF}</tbody></table>`:''}
+  ${fe.length?`<h2>📉 Gastos del día</h2><table><thead><tr><th>Categoría</th><th>Descripción</th><th>Fuente / Cuenta</th><th style="text-align:right">Monto (Gs.)</th></tr></thead><tbody>${expRowsPDF}</tbody></table>`:''}
+  <br><div style="display:flex;gap:12px"><button onclick="window.close()" style="background:#f0f4f1;color:#1a4731;border:1px solid #dde8e1;padding:10px 24px;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600">← Volver</button><button onclick="window.print()" style="background:#1a4731;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600">🖨️ Imprimir / Guardar PDF</button></div>
+  </body></html>`;
+  const w=window.open('','_blank');w.document.write(html);w.document.close();
+};
 
 window.showTab=(id,btn)=>{
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
