@@ -341,7 +341,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase,ref,onValue,set,push,remove,update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-import { getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getAuth,GoogleAuthProvider,signInWithPopup,signInWithRedirect,getRedirectResult,signOut,onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const ALLOWED_EMAILS=["hectorh182@gmail.com","filemagencia@gmail.com","zarachoromin@gmail.com"];
 const firebaseConfig={apiKey:"AIzaSyDilBSPvDwB_tao6-EnzZ70SiXwX4Pznig",authDomain:"misfi-app.firebaseapp.com",databaseURL:"https://misfi-app-default-rtdb.firebaseio.com",projectId:"misfi-app",storageBucket:"misfi-app.firebasestorage.app",messagingSenderId:"649780055071",appId:"1:649780055071:web:c1afd531ac216c9bfd192a"};
@@ -889,6 +889,9 @@ window.showTab=(id,btn)=>{
 initMonthYear();
 
 // ── AUTH ──
+// Handle redirect result from iOS Safari login
+getRedirectResult(auth).catch(()=>{});
+
 onAuthStateChanged(auth,user=>{
   if(user&&ALLOWED_EMAILS.includes(user.email)){
     document.getElementById('login-screen').style.display='none';
@@ -906,8 +909,20 @@ onAuthStateChanged(auth,user=>{
   }
 });
 window.loginWithGoogle=async()=>{
-  try{document.getElementById('login-btn').textContent='Conectando...';await signInWithPopup(auth,provider);}
-  catch(e){document.getElementById('login-btn').innerHTML='<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:22px"> Entrar con Google';showLoginError('Error al iniciar sesión. Intentá de nuevo.');}
+  try{
+    document.getElementById('login-btn').textContent='Conectando...';
+    const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||
+      (navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+    const isSafari=/^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    if(isIOS||isSafari){
+      await signInWithRedirect(auth,provider);
+    } else {
+      await signInWithPopup(auth,provider);
+    }
+  } catch(e){
+    document.getElementById('login-btn').innerHTML='<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:22px"> Entrar con Google';
+    showLoginError('Error al iniciar sesión. Intentá de nuevo.');
+  }
 };
 window.logoutUser=async()=>{if(confirm('¿Cerrar sesión?'))await signOut(auth);};
 function showLoginError(msg){const el=document.getElementById('login-error');el.textContent=msg;el.style.display='block';}
