@@ -664,7 +664,9 @@ window.saveModal=()=>{
     set(ref(db,`/budgets/${id}`),{id,category:cat,amount:amt,month:filterMonth,year:filterYear});
   } else if(modalType==='note'){
     const text=document.getElementById('modal-note-text').value.trim();if(!text)return alert('Escribí algo');
-    push(ref(db,'/notes'),{text,due:document.getElementById('modal-note-due').value.trim(),date:new Date().toISOString()});
+    const due=document.getElementById('modal-note-due').value.trim();
+    push(ref(db,'/notes'),{text,due,date:new Date().toISOString()});
+    if(due) askAndNotify(text,due);
     closeModal();return;
   }
   closeModal();
@@ -926,16 +928,8 @@ function initPWA(){
     document.getElementById('install-banner').style.display='none';
   });
 
-  // Notificaciones push
-  if('Notification' in window && Notification.permission==='default'){
-    setTimeout(()=>{
-      if(noteList().some(n=>n.due)){
-        Notification.requestPermission().then(perm=>{
-          if(perm==='granted') scheduleNotifications();
-        });
-      }
-    },3000);
-  } else if(Notification.permission==='granted'){
+  // Notificaciones: disparar para notas de hoy si ya tenemos permiso
+  if('Notification' in window && Notification.permission==='granted'){
     scheduleNotifications();
   }
 }
@@ -946,15 +940,39 @@ window.installPWA=async()=>{
   deferredPrompt=null;
   document.getElementById('install-banner').style.display='none';
 };
+
+// Pedir permiso y notificar al guardar una nota con fecha
+async function askAndNotify(text, due){
+  if(!('Notification' in window)){return;}
+  let perm=Notification.permission;
+  if(perm==='default'){
+    perm=await Notification.requestPermission();
+  }
+  if(perm!=='granted') return;
+  // Verificar si la fecha es hoy
+  const todayDay=now.getDate();
+  const todayMonthName=MONTHS[now.getMonth()].toLowerCase();
+  const d=due.toLowerCase();
+  const isToday=d==='hoy'||(d.includes(String(todayDay))&&d.includes(todayMonthName));
+  if(isToday){
+    new Notification('💰 Mis Finanzas — Recordatorio para hoy',{
+      body:text,
+      icon:'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg'
+    });
+  }
+}
+
 function scheduleNotifications(){
-  const today=now.toLocaleDateString('es-PY');
   const todayDay=now.getDate();
   const todayMonthName=MONTHS[now.getMonth()].toLowerCase();
   noteList().forEach(n=>{
     if(!n.due)return;
     const d=n.due.toLowerCase();
     if(d==='hoy'||(d.includes(String(todayDay))&&d.includes(todayMonthName))){
-      new Notification('💰 Mis Finanzas — Recordatorio',{body:n.text,icon:'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg'});
+      new Notification('💰 Mis Finanzas — Recordatorio',{
+        body:n.text,
+        icon:'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg'
+      });
     }
   });
 }
