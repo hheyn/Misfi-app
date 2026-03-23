@@ -555,13 +555,17 @@ function rebuildSelects(){
   ['i-account','e-account','b-account','t-from','t-to'].forEach(id=>populateSel(id,aO));
   populateSel('e-category',cO);populateSel('e-source',sO);
 }
+function syncFormMonthYear(){
+  ['i-month','e-month'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=filterMonth;});
+  ['i-year','e-year'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=filterYear;});
+}
 function initMonthYear(){
   const mO=MONTHS.map((m,i)=>({v:i,l:m}));
   const yO=[2023,2024,2025,2026,2027].map(y=>({v:y,l:y}));
   const sm=document.getElementById('sel-month');
-  sm.innerHTML=mO.map(o=>`<option value="${o.v}">${o.l}</option>`).join('');sm.value=filterMonth;sm.onchange=()=>{filterMonth=+sm.value;filterIncomeSource=null;filterExpenseCat=null;render();};
+  sm.innerHTML=mO.map(o=>`<option value="${o.v}">${o.l}</option>`).join('');sm.value=filterMonth;sm.onchange=()=>{filterMonth=+sm.value;filterIncomeSource=null;filterExpenseCat=null;syncFormMonthYear();render();};
   const sy=document.getElementById('sel-year');
-  sy.innerHTML=yO.map(o=>`<option value="${o.v}">${o.l}</option>`).join('');sy.value=filterYear;sy.onchange=()=>{filterYear=+sy.value;filterIncomeSource=null;filterExpenseCat=null;render();};
+  sy.innerHTML=yO.map(o=>`<option value="${o.v}">${o.l}</option>`).join('');sy.value=filterYear;sy.onchange=()=>{filterYear=+sy.value;filterIncomeSource=null;filterExpenseCat=null;syncFormMonthYear();render();};
   ['i-month','e-month'].forEach(id=>{const e=document.getElementById(id);e.innerHTML=mO.map(o=>`<option value="${o.v}">${o.l}</option>`).join('');e.value=filterMonth;});
   ['i-year','e-year'].forEach(id=>{const e=document.getElementById(id);e.innerHTML=yO.map(o=>`<option value="${o.v}">${o.l}</option>`).join('');e.value=filterYear;});
   const todayISO=now.toISOString().split('T')[0];
