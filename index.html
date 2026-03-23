@@ -541,6 +541,18 @@ function listenAll(){
     state.categories=val.categories||Object.fromEntries(DEFAULT_CATS.map(c=>[c.id,c]));
     state.accounts=val.accounts||Object.fromEntries(DEFAULT_ACCOUNTS.map(a=>[a.id,a]));
     syncBar('ok','🟢 Sincronizado en tiempo real · datos compartidos');
+    // Al primer arranque: si el mes actual está cerrado, avanzar al siguiente automáticamente
+    if(!listenAll._initDone){
+      listenAll._initDone=true;
+      if(isClosed(filterMonth,filterYear)){
+        const nm=filterMonth===11?0:filterMonth+1;
+        const ny=filterMonth===11?filterYear+1:filterYear;
+        filterMonth=nm;filterYear=ny;
+        document.getElementById('sel-month').value=filterMonth;
+        document.getElementById('sel-year').value=filterYear;
+        syncFormMonthYear();
+      }
+    }
     rebuildSelects();render();
   },()=>syncBar('err','🔴 Sin conexión — revisá internet'));
 }
