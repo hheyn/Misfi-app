@@ -200,6 +200,26 @@
     .modal .mrow{display:flex;gap:8px}.modal .mrow input{flex:1}
     .modal-btns{display:flex;gap:8px;margin-top:4px}.modal-btns button{flex:1}
 
+    /* ── CRM Filem ── */
+    .crm-header{background:var(--green);border-radius:16px;padding:16px;margin-bottom:16px;color:#fff}
+    .crm-header h2{font-size:18px;font-weight:700;margin-bottom:2px}
+    .crm-header p{font-size:12px;color:rgba(255,255,255,.7);margin-bottom:12px}
+    .crm-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+    .crm-sum-box{background:rgba(255,255,255,.15);border-radius:10px;padding:10px;text-align:center}
+    .csb-val{font-size:13px;font-weight:700;color:#fff}
+    .csb-lbl{font-size:10px;color:rgba(255,255,255,.7);margin-top:2px}
+    .crm-client{background:var(--surface);border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);border:1px solid var(--border)}
+    .cc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+    .cc-name{font-size:14px;font-weight:700;color:var(--text)}
+    .cc-pkg{font-size:11px;color:var(--text3);margin-top:3px}
+    .cc-total{font-size:15px;font-weight:700}
+    .cc-status-badge{font-size:11px;color:var(--text3);margin-top:3px;text-align:right;font-weight:500}
+    .cc-payments{background:var(--surface2);border-radius:10px;padding:8px 10px;margin-bottom:8px}
+    .cc-pay-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px}
+    .cc-pay-row:last-child{border-bottom:none;padding-bottom:0}
+    .cpr-desc{color:var(--text2);flex:1}
+    .cpr-amt{font-weight:700;flex-shrink:0;margin-left:8px}
+
     /* PWA install banner */
     #install-banner{display:none;background:var(--green);color:#fff;padding:10px 16px;align-items:center;justify-content:space-between;gap:10px;font-size:13px;font-weight:500}
     #install-banner button{background:#fff;color:var(--green);border:none;border-radius:8px;padding:6px 14px;font-weight:700;font-size:12px;cursor:pointer}
@@ -429,12 +449,15 @@
 <div id="tab-filem" class="tab">
   <div class="crm-header">
     <h2>🎬 Clientes Filem</h2>
-    <p>Estado de pagos por cliente · <span id="crm-mes-label"></span></p>
+    <p>Estado de cobros · <span id="crm-mes-label"></span></p>
     <div class="crm-summary">
       <div class="crm-sum-box"><div class="csb-val" id="crm-total-cobrado">—</div><div class="csb-lbl">Cobrado</div></div>
-      <div class="crm-sum-box"><div class="csb-val" id="crm-total-pendiente">—</div><div class="csb-lbl">Pendiente</div></div>
+      <div class="crm-sum-box"><div class="csb-val" id="crm-total-esperado">—</div><div class="csb-lbl">Esperado</div></div>
       <div class="crm-sum-box"><div class="csb-val" id="crm-clientes-ok">—</div><div class="csb-lbl">Al día</div></div>
     </div>
+  </div>
+  <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+    <button class="add-link" onclick="openCRMClientModal()">+ Nuevo cliente</button>
   </div>
   <div id="crm-clients-list"></div>
 </div>
@@ -505,7 +528,7 @@ const now=new Date();
 let filterMonth=now.getMonth(),filterYear=now.getFullYear();
 let filterIncomeSource=null;   // null = todos
 let filterExpenseCat=null;     // null = todas
-let state={incomes:{},expenses:{},accountBalances:{},accountTransactions:{},transfers:{},budgets:{},notes:{},closedMonths:{},crmData:{},sources:{},categories:{},accounts:{}};
+let state={incomes:{},expenses:{},accountBalances:{},accountTransactions:{},transfers:{},budgets:{},notes:{},closedMonths:{},crmData:{},crmClients:{},crmStatus:{},sources:{},categories:{},accounts:{}};
 
 // ── HELPERS ──
 function syncBar(cls,msg){const e=document.getElementById('sync-bar');e.className=cls;e.textContent=msg;}
@@ -534,6 +557,8 @@ function listenAll(){
     state.notes=val.notes||{};
     state.closedMonths=val.closedMonths||{};
     state.crmData=val.crmData||{};
+    state.crmClients=val.crmClients||{};
+    state.crmStatus=val.crmStatus||{};
     if(!val.sources){const o={};DEFAULT_SOURCES.forEach(s=>o[s.id]=s);set(ref(db,'/sources'),o);}
     if(!val.categories){const o={};DEFAULT_CATS.forEach(c=>o[c.id]=c);set(ref(db,'/categories'),o);}
     if(!val.accounts){const o={};DEFAULT_ACCOUNTS.forEach(a=>o[a.id]=a);set(ref(db,'/accounts'),o);const b={};DEFAULT_ACCOUNTS.forEach(a=>b[a.id]=0);set(ref(db,'/accountBalances'),b);}
@@ -820,6 +845,36 @@ window.saveModal=()=>{
     push(ref(db,'/notes'),{text,due,date:new Date().toISOString()});
     if(due) askAndNotify(text,due);
     closeModal();return;
+  }
+  // CRM CLIENT
+  if(modalType==='crm-client'){
+    const name=document.getElementById('crm-cli-name').value.trim();if(!name)return alert('Ingresá un nombre');
+    const paquete=parseFloat(document.getElementById('crm-cli-paquete').value)||0;
+    const nota=document.getElementById('crm-cli-nota').value.trim();
+    const cliId=modalEditKey||('cli_'+Date.now());
+    set(ref(db,`/crmClients/${cliId}`),{id:cliId,name,paquete,nota});
+    return closeModal();
+  }
+  // CRM COBRO
+  if(modalType==='crm-cobro'){
+    const amt=parseFloat(document.getElementById('crm-cobro-amt').value);if(!amt)return alert('Ingresá un monto');
+    const acc=document.getElementById('crm-cobro-acc').value;
+    const dateVal=document.getElementById('crm-cobro-date').value;
+    const dateObj=dateVal?new Date(dateVal+'T12:00:00'):new Date();
+    const desc=document.getElementById('crm-cobro-desc').value.trim();
+    if(isClosed(filterMonth,filterYear)){alert(`${MONTHS[filterMonth]} ${filterYear} está cerrado.`);return;}
+    // Guardar ingreso
+    push(ref(db,'/incomes'),{source:'filem',account:acc,amount:amt,description:desc,month:filterMonth,year:filterYear,date:dateObj.toISOString(),crmClientKey:modalEditKey});
+    set(ref(db,`/accountBalances/${acc}`),(state.accountBalances[acc]||0)+amt);
+    // Calcular total cobrado este mes para este cliente (incluyendo el nuevo cobro)
+    const mesKey2=`${filterYear}_${String(filterMonth).padStart(2,'0')}`;
+    const client=(state.crmClients||{})[modalEditKey];
+    const paquete=client?client.paquete||0:0;
+    const yacobrado=incList().filter(i=>i.crmClientKey===modalEditKey&&i.month===filterMonth&&i.year===filterYear).reduce((s,i)=>s+i.amount,0);
+    const totalConEste=yacobrado+amt;
+    const nuevoStatus=paquete>0&&totalConEste>=paquete?'pagado':totalConEste>0?'parcial':'pendiente';
+    set(ref(db,`/crmStatus/${mesKey2}/${modalEditKey}`),nuevoStatus);
+    return closeModal();
   }
   closeModal();
 };
@@ -1335,60 +1390,102 @@ window.saveFabModal=()=>{
 };
 
 // ── CRM FILEM ──
-const CRM_CLIENTS=['PROFIT','Hotel Tacuaty','Romi Gasha','La Parrilla del Gaucho','Super Victor','Carmen Nutri','Arq. MariaE'];
+const crmClients=()=>Object.entries(state.crmClients||{}).map(([k,v])=>({...v,_key:k})).sort((a,b)=>a.name.localeCompare(b.name));
 
 function renderCRM(){
   const mesLabel=`${MONTHS[filterMonth]} ${filterYear}`;
   document.getElementById('crm-mes-label').textContent=mesLabel;
-  // Ingresos de Filem del mes
+
+  const mesKey2=`${filterYear}_${String(filterMonth).padStart(2,'0')}`;
   const filemInc=incList().filter(i=>i.source==='filem'&&i.month===filterMonth&&i.year===filterYear);
   const totalCobrado=filemInc.reduce((s,i)=>s+i.amount,0);
+  const clients=crmClients();
+  const totalEsperado=clients.reduce((s,c)=>s+(c.paquete||0),0);
 
-  // Estado de clientes guardado en Firebase
-  const crmState=(state.crmData||{})[`${filterYear}_${String(filterMonth).padStart(2,'0')}`]||{};
+  const aO=accs().map(a=>({v:a.id,l:`${a.icon} ${a.owner} — ${a.label}`}));
+  const accOpts=aO.map(o=>`<option value="${o.v}">${o.l}</option>`).join('');
+  const ss='background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13px;width:100%;margin-bottom:8px';
 
   let clientesOk=0;
-  const clientsHTML=CRM_CLIENTS.map(name=>{
-    const key=name.replace(/\s+/g,'_').replace(/\./g,'');
-    const clientData=crmState[key]||{status:'pendiente',amount:0,description:''};
-    if(clientData.status==='pagado')clientesOk++;
-
-    const pagos=filemInc.filter(i=>(i.description||'').toLowerCase().includes(name.toLowerCase()));
+  const clientsHTML=clients.map(client=>{
+    const key=client._key;
+    const pagos=filemInc.filter(i=>(i.crmClientKey===key)||(i.description||'').toLowerCase().includes((client.name||'').toLowerCase()));
     const cobrado=pagos.reduce((s,i)=>s+i.amount,0);
+    const paquete=client.paquete||0;
+    const savedStatus=(state.crmStatus||{})[mesKey2]?.[key];
+    const computedStatus=cobrado>=paquete&&paquete>0?'pagado':cobrado>0?'parcial':'pendiente';
+    const status=savedStatus||computedStatus;
+    if(status==='pagado')clientesOk++;
+    const statusColor=status==='pagado'?'var(--green-lite)':status==='parcial'?'#fbbf24':'#e2e8f0';
+    const statusLabel=status==='pagado'?'✓ Pagado':status==='parcial'?'⚡ Parcial':'⏳ Pendiente';
 
-    return `<div class="crm-client">
+    return `<div class="crm-client" style="border-left:4px solid ${statusColor}">
       <div class="cc-top">
-        <div class="cc-name">👤 ${name}</div>
-        <div class="cc-total">${cobrado>0?fmt(cobrado):'Sin cobros'}</div>
+        <div>
+          <div class="cc-name">👤 ${client.name}</div>
+          <div class="cc-pkg">${paquete>0?'Paquete: '+fmt(paquete):'Sin paquete definido'}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div class="cc-total" style="color:${status==='pagado'?'var(--green-mid)':status==='parcial'?'#d97706':'var(--text3)'}">${cobrado>0?fmt(cobrado):'Gs. 0'}</div>
+          <div class="cc-status-badge">${statusLabel}</div>
+        </div>
       </div>
-      <div class="cc-status">
-        <span class="status-chip pagado${clientData.status==='pagado'?' selected':''}" onclick="setCRMStatus('${key}','pagado')">✓ Pagado</span>
-        <span class="status-chip parcial${clientData.status==='parcial'?' selected':''}" onclick="setCRMStatus('${key}','parcial')">⚡ Parcial</span>
-        <span class="status-chip pendiente${clientData.status==='pendiente'?' selected':''}" onclick="setCRMStatus('${key}','pendiente')">⏳ Pendiente</span>
+      ${pagos.length?`<div class="cc-payments">${pagos.map(p=>`<div class="cc-pay-row"><span class="cpr-desc">📄 ${p.description||'Cobro Filem'} · ${p.date?new Date(p.date).toLocaleDateString('es-PY'):''}</span><span class="cpr-amt" style="color:var(--green-mid)">+${fmt(p.amount)}</span><button class="del-btn" onclick="deleteCRMPago('${p._key}','${key}')" style="font-size:13px;color:var(--text3)">✕</button></div>`).join('')}</div>`:''}
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn btn-green btn-sm" style="flex:1" onclick="openCRMCobro('${key}')">💰 Registrar cobro</button>
+        <button class="btn btn-outline btn-sm" onclick="openCRMClientModal('${key}')">✏️</button>
+        <button class="btn btn-outline btn-sm" style="color:var(--danger)" onclick="deleteCRMClient('${key}')">🗑</button>
       </div>
-      ${pagos.length?`<div class="cc-payments">${pagos.map(p=>`<div class="cc-pay-row"><span class="cpr-desc">📄 ${p.description||'Ingreso Filem'} · ${p.date?new Date(p.date).toLocaleDateString('es-PY'):''}</span><span class="cpr-amt">+${fmt(p.amount)}</span></div>`).join('')}</div>`:''}
-      <input type="text" placeholder="Nota (servicio, factura...)" value="${clientData.note||''}"
-        onchange="setCRMNote('${key}',this.value)"
-        style="width:100%;margin-top:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:12px;color:var(--text)">
     </div>`;
   }).join('');
 
-  const pendiente=CRM_CLIENTS.length-clientesOk;
   document.getElementById('crm-total-cobrado').textContent=fmt(totalCobrado);
-  document.getElementById('crm-total-pendiente').textContent=`${pendiente} cliente${pendiente!==1?'s':''}`;
-  document.getElementById('crm-clientes-ok').textContent=`${clientesOk}/${CRM_CLIENTS.length}`;
-  document.getElementById('crm-clients-list').innerHTML=clientsHTML;
+  document.getElementById('crm-total-esperado').textContent=fmt(totalEsperado);
+  document.getElementById('crm-clientes-ok').textContent=`${clientesOk}/${clients.length}`;
+  document.getElementById('crm-clients-list').innerHTML=clients.length?clientsHTML:`<div class="empty">No hay clientes. Agregá uno con el botón de arriba.</div>`;
 }
 
-window.setCRMStatus=(key,status)=>{
-  const mesKey2=`${filterYear}_${String(filterMonth).padStart(2,'0')}`;
-  const cur=(((state.crmData||{})[mesKey2])||{})[key]||{};
-  set(ref(db,`/crmData/${mesKey2}/${key}`),{...cur,status});
+// Modal nuevo/editar cliente
+window.openCRMClientModal=(key)=>{
+  const client=key?(state.crmClients||{})[key]:null;
+  const ss='width:100%;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:9px 10px;font-size:13px;margin-bottom:10px';
+  document.getElementById('modal-title').textContent=client?'Editar cliente':'Nuevo cliente Filem';
+  document.getElementById('modal-body').innerHTML=`
+    <input type="text" id="crm-cli-name" placeholder="Nombre del cliente" value="${client?client.name:''}" style="${ss}">
+    <input type="number" id="crm-cli-paquete" placeholder="Monto del paquete mensual (Gs.)" value="${client?client.paquete||'':''}" style="${ss}">
+    <input type="text" id="crm-cli-nota" placeholder="Nota o descripción (opcional)" value="${client?client.nota||'':''}" style="${ss}">`;
+  modalType='crm-client';modalEditKey=key||'';
+  document.getElementById('modal-bg').classList.add('open');
 };
-window.setCRMNote=(key,note)=>{
-  const mesKey2=`${filterYear}_${String(filterMonth).padStart(2,'0')}`;
-  const cur=(((state.crmData||{})[mesKey2])||{})[key]||{};
-  set(ref(db,`/crmData/${mesKey2}/${key}`),{...cur,note});
+
+// Modal registrar cobro
+window.openCRMCobro=(key)=>{
+  const client=(state.crmClients||{})[key];if(!client)return;
+  const aO=accs().map(a=>({v:a.id,l:`${a.icon} ${a.owner} — ${a.label}`}));
+  const accOpts=aO.map(o=>`<option value="${o.v}">${o.l}</option>`).join('');
+  const todayISO=new Date().toISOString().split('T')[0];
+  const ss='width:100%;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:9px 10px;font-size:13px;margin-bottom:10px';
+  document.getElementById('modal-title').textContent=`💰 Cobro — ${client.name}`;
+  document.getElementById('modal-body').innerHTML=`
+    <p style="font-size:12px;color:var(--text2);margin-bottom:10px">Paquete: <b>${client.paquete?fmt(client.paquete):'no definido'}</b></p>
+    <input type="number" id="crm-cobro-amt" placeholder="Monto cobrado (Gs.)" value="${client.paquete||''}" style="${ss}">
+    <select id="crm-cobro-acc" style="${ss}">${accOpts}</select>
+    <input type="date" id="crm-cobro-date" value="${todayISO}" style="${ss}">
+    <input type="text" id="crm-cobro-desc" placeholder="Descripción (opcional)" value="${client.name}" style="${ss}">`;
+  modalType='crm-cobro';modalEditKey=key;
+  document.getElementById('modal-bg').classList.add('open');
+};
+
+window.deleteCRMPago=(incKey,clientKey)=>{
+  if(!confirm('¿Eliminar este cobro?'))return;
+  const item=state.incomes[incKey];if(!item)return;
+  remove(ref(db,`/incomes/${incKey}`));
+  set(ref(db,`/accountBalances/${item.account}`),(state.accountBalances[item.account]||0)-item.amount);
+};
+
+window.deleteCRMClient=(key)=>{
+  if(!confirm('¿Eliminar este cliente?'))return;
+  remove(ref(db,`/crmClients/${key}`));
 };
 
 // ── COMPARATIVO ──
