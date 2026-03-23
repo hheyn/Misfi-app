@@ -1412,14 +1412,24 @@ function renderCRM(){
   const clients=crmClients();
   const totalEsperado=clients.reduce((s,c)=>s+(c.paquete||0),0);
 
-  const aO=accs().map(a=>({v:a.id,l:`${a.icon} ${a.owner} — ${a.label}`}));
-  const accOpts=aO.map(o=>`<option value="${o.v}">${o.l}</option>`).join('');
-  const ss='background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13px;width:100%;margin-bottom:8px';
+  // Construir mapa de pagos por cliente UNA SOLA VEZ — evita doble filtrado inconsistente
+  // Un ingreso pertenece a un cliente si tiene crmClientKey, o si no tiene key asignada y el nombre matchea
+  const pagosPorCliente={};
+  clients.forEach(c=>pagosPorCliente[c._key]=[]);
+  filemInc.forEach(inc=>{
+    if(inc.crmClientKey&&pagosPorCliente[inc.crmClientKey]!==undefined){
+      pagosPorCliente[inc.crmClientKey].push(inc);
+    } else if(!inc.crmClientKey){
+      // fallback por nombre para cobros viejos sin crmClientKey
+      const match=clients.find(c=>(inc.description||'').toLowerCase().includes((c.name||'').toLowerCase()));
+      if(match) pagosPorCliente[match._key].push(inc);
+    }
+  });
 
   let clientesOk=0;
   const clientsHTML=clients.map(client=>{
     const key=client._key;
-    const pagos=filemInc.filter(i=>(i.crmClientKey===key)||(i.description||'').toLowerCase().includes((client.name||'').toLowerCase()));
+    const pagos=pagosPorCliente[key]||[];
     const cobrado=pagos.reduce((s,i)=>s+i.amount,0);
     const paquete=client.paquete||0;
     const savedStatus=(state.crmStatus||{})[mesKey2]?.[key];
@@ -1449,7 +1459,7 @@ function renderCRM(){
     </div>`;
   }).join('');
 
-  // Tabla resumen al pie
+  // Tabla resumen — lee del mismo mapa, todos los clientes aparecen siempre
   const resumenHTML=clients.length?`
     <div class="crm-resumen">
       <div class="crm-resumen-title">📋 Resumen del mes — ${mesLabel}</div>
@@ -1458,8 +1468,8 @@ function renderCRM(){
         <tbody>
           ${clients.map(c=>{
             const k=c._key;
-            const pg=filemInc.filter(i=>i.crmClientKey===k||(i.description||'').toLowerCase().includes((c.name||'').toLowerCase()));
-            const cob=pg.reduce((s,i)=>s+i.amount,0);
+            const pagos2=pagosPorCliente[k]||[];
+            const cob=pagos2.reduce((s,i)=>s+i.amount,0);
             const pkg=c.paquete||0;
             const sv=(state.crmStatus||{})[mesKey2]?.[k];
             const st=sv||(cob>=pkg&&pkg>0?'pagado':cob>0?'parcial':'pendiente');
@@ -1468,7 +1478,7 @@ function renderCRM(){
             return `<tr>
               <td class="crt-name">👤 ${c.name}</td>
               <td class="crt-num">${pkg>0?fmt(pkg):'—'}</td>
-              <td class="crt-num" style="color:${cob>0?'var(--green-mid)':'var(--text3)'}">${fmt(cob)}</td>
+              <td class="crt-num" style="color:${cob>0?'var(--green-mid)':'var(--text3)'}">${cob>0?fmt(cob):'—'}</td>
               <td><span class="crt-badge" style="color:${stColor}">${stLabel}</span></td>
             </tr>`;
           }).join('')}
