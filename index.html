@@ -591,6 +591,15 @@ window.toggleCloseMes=()=>{
   } else {
     if(!confirm(`¿Cerrar ${label}? No se podrán agregar ni eliminar registros hasta que lo reabras.`))return;
     set(ref(db,`/closedMonths/${key}`),{closedAt:new Date().toISOString(),label});
+    // Avanzar automáticamente al mes siguiente
+    const nextMonth=filterMonth===11?0:filterMonth+1;
+    const nextYear=filterMonth===11?filterYear+1:filterYear;
+    filterMonth=nextMonth;filterYear=nextYear;
+    filterIncomeSource=null;filterExpenseCat=null;
+    document.getElementById('sel-month').value=filterMonth;
+    document.getElementById('sel-year').value=filterYear;
+    syncFormMonthYear();
+    render();
   }
 };
 
@@ -1301,8 +1310,8 @@ window.saveFabModal=()=>{
   const acc=document.getElementById('fq-account').value;
   const dateVal=document.getElementById('fq-date').value;
   const dateObj=dateVal?new Date(dateVal+'T12:00:00'):new Date();
-  const month=dateObj.getMonth(),year=dateObj.getFullYear();
-  if(isClosed(month,year)){alert('Ese mes está cerrado.');return;}
+  const month=filterMonth,year=filterYear;
+  if(isClosed(month,year)){alert(`${MONTHS[month]} ${year} está cerrado. Cambiá el mes activo desde la barra superior.`);return;}
   if(fabType==='ingreso'){
     push(ref(db,'/incomes'),{source:document.getElementById('fq-source').value,account:acc,amount:amt,description:document.getElementById('fq-desc').value,month,year,date:dateObj.toISOString()});
     set(ref(db,`/accountBalances/${acc}`),(state.accountBalances[acc]||0)+amt);
