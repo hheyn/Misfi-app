@@ -219,6 +219,16 @@
     .cc-pay-row:last-child{border-bottom:none;padding-bottom:0}
     .cpr-desc{color:var(--text2);flex:1}
     .cpr-amt{font-weight:700;flex-shrink:0;margin-left:8px}
+    .crm-resumen{background:var(--surface);border-radius:14px;padding:14px;margin-top:4px;box-shadow:var(--shadow);border:1px solid var(--border)}
+    .crm-resumen-title{font-size:11px;font-weight:700;color:var(--text2);letter-spacing:.8px;text-transform:uppercase;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+    .crm-table{width:100%;border-collapse:collapse;font-size:13px}
+    .crm-table thead th{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;padding:0 6px 8px;text-align:left}
+    .crm-table thead th:not(:first-child){text-align:right}
+    .crm-table tbody tr{border-top:1px solid var(--border)}
+    .crm-table tbody td{padding:9px 6px;vertical-align:middle}
+    .crt-name{font-weight:600;color:var(--text)}
+    .crt-num{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+    .crt-badge{font-size:12px;font-weight:600;display:block;text-align:right}
 
     /* PWA install banner */
     #install-banner{display:none;background:var(--green);color:#fff;padding:10px 16px;align-items:center;justify-content:space-between;gap:10px;font-size:13px;font-weight:500}
@@ -1439,10 +1449,39 @@ function renderCRM(){
     </div>`;
   }).join('');
 
+  // Tabla resumen al pie
+  const resumenHTML=clients.length?`
+    <div class="crm-resumen">
+      <div class="crm-resumen-title">📋 Resumen del mes — ${mesLabel}</div>
+      <table class="crm-table">
+        <thead><tr><th>Cliente</th><th>Paquete</th><th>Cobrado</th><th>Estado</th></tr></thead>
+        <tbody>
+          ${clients.map(c=>{
+            const k=c._key;
+            const pg=filemInc.filter(i=>i.crmClientKey===k||(i.description||'').toLowerCase().includes((c.name||'').toLowerCase()));
+            const cob=pg.reduce((s,i)=>s+i.amount,0);
+            const pkg=c.paquete||0;
+            const sv=(state.crmStatus||{})[mesKey2]?.[k];
+            const st=sv||(cob>=pkg&&pkg>0?'pagado':cob>0?'parcial':'pendiente');
+            const stColor=st==='pagado'?'var(--green-mid)':st==='parcial'?'#d97706':'var(--text3)';
+            const stLabel=st==='pagado'?'✓ Pagado':st==='parcial'?'⚡ Parcial':'⏳ Pendiente';
+            return `<tr>
+              <td class="crt-name">👤 ${c.name}</td>
+              <td class="crt-num">${pkg>0?fmt(pkg):'—'}</td>
+              <td class="crt-num" style="color:${cob>0?'var(--green-mid)':'var(--text3)'}">${fmt(cob)}</td>
+              <td><span class="crt-badge" style="color:${stColor}">${stLabel}</span></td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>`:'';
+
   document.getElementById('crm-total-cobrado').textContent=fmt(totalCobrado);
   document.getElementById('crm-total-esperado').textContent=fmt(totalEsperado);
   document.getElementById('crm-clientes-ok').textContent=`${clientesOk}/${clients.length}`;
-  document.getElementById('crm-clients-list').innerHTML=clients.length?clientsHTML:`<div class="empty">No hay clientes. Agregá uno con el botón de arriba.</div>`;
+  document.getElementById('crm-clients-list').innerHTML=clients.length
+    ? clientsHTML+resumenHTML
+    : `<div class="empty">No hay clientes. Agregá uno con el botón de arriba.</div>`;
 }
 
 // Modal nuevo/editar cliente
