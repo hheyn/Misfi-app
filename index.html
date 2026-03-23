@@ -573,8 +573,7 @@ function initMonthYear(){
   const repDateEl2=document.getElementById('rep-date2');
   if(repDateEl2) repDateEl2.value=todayISO;
 
-  document.getElementById('i-date').addEventListener('change',function(){const d=new Date(this.value+'T12:00:00');document.getElementById('i-month').value=d.getMonth();document.getElementById('i-year').value=d.getFullYear();});
-  document.getElementById('e-date').addEventListener('change',function(){const d=new Date(this.value+'T12:00:00');document.getElementById('e-month').value=d.getMonth();document.getElementById('e-year').value=d.getFullYear();});
+  // La fecha del registro es solo informativa — el mes/año lo decide el usuario con los selectores.
 }
 
 // ── CIERRE DE MES ──
@@ -595,23 +594,27 @@ window.toggleCloseMes=()=>{
 window.onCatChange=()=>{const c=cats().find(x=>x.id===document.getElementById('e-category').value);if(c?.defaultSource)document.getElementById('e-source').value=c.defaultSource;};
 
 window.addIncome=()=>{
-  if(isClosed(filterMonth,filterYear)){alert('Este mes está cerrado. Reabrilo desde la pestaña Más.');return;}
+  const entryMonth=+document.getElementById('i-month').value;
+  const entryYear=+document.getElementById('i-year').value;
+  if(isClosed(entryMonth,entryYear)){alert(`${MONTHS[entryMonth]} ${entryYear} está cerrado. Reabrilo desde la pestaña Más.`);return;}
   const amt=parseFloat(document.getElementById('i-amount').value);if(!amt)return;
   const acc=document.getElementById('i-account').value;
   const iDateVal=document.getElementById('i-date').value;
   const iDateObj=iDateVal?new Date(iDateVal+'T12:00:00'):new Date();
-  push(ref(db,'/incomes'),{source:document.getElementById('i-source').value,account:acc,amount:amt,description:document.getElementById('i-desc').value,month:+document.getElementById('i-month').value,year:+document.getElementById('i-year').value,date:iDateObj.toISOString()});
+  push(ref(db,'/incomes'),{source:document.getElementById('i-source').value,account:acc,amount:amt,description:document.getElementById('i-desc').value,month:entryMonth,year:entryYear,date:iDateObj.toISOString()});
   set(ref(db,`/accountBalances/${acc}`),(state.accountBalances[acc]||0)+amt);
   document.getElementById('i-amount').value='';document.getElementById('i-desc').value='';
 };
 
 window.addExpense=()=>{
-  if(isClosed(filterMonth,filterYear)){alert('Este mes está cerrado. Reabrilo desde la pestaña Más.');return;}
+  const entryMonth=+document.getElementById('e-month').value;
+  const entryYear=+document.getElementById('e-year').value;
+  if(isClosed(entryMonth,entryYear)){alert(`${MONTHS[entryMonth]} ${entryYear} está cerrado. Reabrilo desde la pestaña Más.`);return;}
   const amt=parseFloat(document.getElementById('e-amount').value);if(!amt)return;
   const acc=document.getElementById('e-account').value;
   const eDateVal=document.getElementById('e-date').value;
   const eDateObj=eDateVal?new Date(eDateVal+'T12:00:00'):new Date();
-  push(ref(db,'/expenses'),{category:document.getElementById('e-category').value,source:document.getElementById('e-source').value,account:acc,amount:amt,description:document.getElementById('e-desc').value,month:+document.getElementById('e-month').value,year:+document.getElementById('e-year').value,date:eDateObj.toISOString()});
+  push(ref(db,'/expenses'),{category:document.getElementById('e-category').value,source:document.getElementById('e-source').value,account:acc,amount:amt,description:document.getElementById('e-desc').value,month:entryMonth,year:entryYear,date:eDateObj.toISOString()});
   set(ref(db,`/accountBalances/${acc}`),(state.accountBalances[acc]||0)-amt);
   document.getElementById('e-amount').value='';document.getElementById('e-desc').value='';
 };
@@ -935,14 +938,15 @@ function render(){
   document.getElementById('d-income-title').textContent=`Ingresos por fuente — ${mesLabel}`;
   document.getElementById('d-expense-title').textContent=`Gastos por categoría — ${mesLabel}`;
 
-  // Closed banner
-  const closedHtml=closed?`<div class="closed-banner"><div><div class="cb-text">🔒 ${mesLabel} cerrado</div><div class="cb-sub">No se pueden agregar ni eliminar registros</div></div><button onclick="showTab('mas',document.getElementById('bn-mas'))">Reabrir</button></div>`:'';
+  // Closed banner (only for the currently viewed month)
+  const closedHtml=closed?`<div class="closed-banner"><div><div class="cb-text">🔒 ${mesLabel} cerrado</div><div class="cb-sub">Los registros de este mes no se pueden modificar</div></div><button onclick="showTab('mas',document.getElementById('bn-mas'))">Reabrir</button></div>`:'';
   document.getElementById('d-closed-banner').innerHTML=closedHtml;
   ['i','e'].forEach(p=>{
     const w=document.getElementById(`${p}-closed-warn`);
-    if(w)w.innerHTML=closed?`<div class="closed-banner" style="margin-bottom:14px"><div><div class="cb-text">🔒 ${mesLabel} está cerrado</div><div class="cb-sub">Los formularios están desactivados</div></div></div>`:'';
+    if(w)w.innerHTML=closed?`<div class="closed-banner" style="margin-bottom:14px"><div><div class="cb-text">🔒 ${mesLabel} está cerrado</div><div class="cb-sub">Cambiá la fecha del formulario para registrar en otro mes</div></div></div>`:'';
+    // Don't disable the form boxes — validation happens at save time based on the form's date
     const fb=document.getElementById(`${p}-form-box`);
-    if(fb)fb.classList.toggle('month-closed-overlay',closed);
+    if(fb)fb.classList.remove('month-closed-overlay');
   });
 
   // Close status in Más tab
