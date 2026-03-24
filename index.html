@@ -567,8 +567,12 @@ function listenAll(){
     state.notes=val.notes||{};
     state.closedMonths=val.closedMonths||{};
     state.crmData=val.crmData||{};
-    state.crmClients=val.crmClients||{};
     state.crmStatus=val.crmStatus||{};
+    if(!val.crmClients){
+      const o={};DEFAULT_CRM_CLIENTS.forEach(c=>o[c.id]=c);
+      set(ref(db,'/crmClients'),o);
+    }
+    state.crmClients=val.crmClients||{}; 
     if(!val.sources){const o={};DEFAULT_SOURCES.forEach(s=>o[s.id]=s);set(ref(db,'/sources'),o);}
     if(!val.categories){const o={};DEFAULT_CATS.forEach(c=>o[c.id]=c);set(ref(db,'/categories'),o);}
     if(!val.accounts){const o={};DEFAULT_ACCOUNTS.forEach(a=>o[a.id]=a);set(ref(db,'/accounts'),o);const b={};DEFAULT_ACCOUNTS.forEach(a=>b[a.id]=0);set(ref(db,'/accountBalances'),b);}
@@ -1400,6 +1404,16 @@ window.saveFabModal=()=>{
 };
 
 // ── CRM FILEM ──
+const DEFAULT_CRM_CLIENTS=[
+  {id:'cli_nutri_carmen',name:'Nutri Carmen Farias',paquete:450000,nota:''},
+  {id:'cli_profit',name:'Profit',paquete:450000,nota:''},
+  {id:'cli_super_victor',name:'Super Victor',paquete:900000,nota:''},
+  {id:'cli_romi_gasha',name:'Romi Gasha',paquete:450000,nota:''},
+  {id:'cli_hotel_tacuaty',name:'Hotel Tacuaty',paquete:700000,nota:''},
+  {id:'cli_maria_e',name:'Maria E.',paquete:450000,nota:''},
+  {id:'cli_nutri_sofi',name:'Nutri Sofi Arguello',paquete:450000,nota:''},
+  {id:'cli_parrilla_gaucho',name:'Parrilla del Gaucho',paquete:450000,nota:''},
+];
 const crmClients=()=>Object.entries(state.crmClients||{}).map(([k,v])=>({...v,_key:k})).sort((a,b)=>a.name.localeCompare(b.name));
 
 function renderCRM(){
