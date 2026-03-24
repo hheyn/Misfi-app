@@ -229,6 +229,10 @@
     .crt-name{font-weight:600;color:var(--text)}
     .crt-num{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
     .crt-badge{font-size:12px;font-weight:600;display:block;text-align:right}
+    .crm-vence{font-size:12px;font-weight:600;border-radius:8px;padding:6px 10px;margin-bottom:10px}
+    .vence-atrasado{background:#fff5f5;color:#b91c1c;border:1px solid #fca5a5}
+    .vence-hoy{background:#fffbea;color:#b45309;border:1px solid #fde68a}
+    .vence-pronto{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe}
 
     /* PWA install banner */
     #install-banner{display:none;background:var(--green);color:#fff;padding:10px 16px;align-items:center;justify-content:space-between;gap:10px;font-size:13px;font-weight:500}
@@ -571,6 +575,14 @@ function listenAll(){
     if(!val.crmClients){
       const o={};DEFAULT_CRM_CLIENTS.forEach(c=>o[c.id]=c);
       set(ref(db,'/crmClients'),o);
+    } else {
+      // Patch venceDia para clientes que ya existen sin ese campo
+      DEFAULT_CRM_CLIENTS.forEach(def=>{
+        const existing=val.crmClients[def.id];
+        if(existing&&(existing.venceDia===undefined||existing.venceDia===null)){
+          update(ref(db,`/crmClients/${def.id}`),{venceDia:def.venceDia});
+        }
+      });
     }
     state.crmClients=val.crmClients||{}; 
     if(!val.sources){const o={};DEFAULT_SOURCES.forEach(s=>o[s.id]=s);set(ref(db,'/sources'),o);}
@@ -864,9 +876,10 @@ window.saveModal=()=>{
   if(modalType==='crm-client'){
     const name=document.getElementById('crm-cli-name').value.trim();if(!name)return alert('Ingresá un nombre');
     const paquete=parseFloat(document.getElementById('crm-cli-paquete').value)||0;
+    const venceDia=parseInt(document.getElementById('crm-cli-vence').value)||0;
     const nota=document.getElementById('crm-cli-nota').value.trim();
     const cliId=modalEditKey||('cli_'+Date.now());
-    set(ref(db,`/crmClients/${cliId}`),{id:cliId,name,paquete,nota});
+    set(ref(db,`/crmClients/${cliId}`),{id:cliId,name,paquete,venceDia,nota});
     return closeModal();
   }
   // CRM COBRO
@@ -1128,6 +1141,28 @@ function render(){
   const todayNotes=allNotes.filter(n=>{if(!n.due)return false;const d=n.due.toLowerCase();return d==='hoy'||(d.includes(String(todayDay))&&d.includes(todayMonthName));});
   const pendingNotes=allNotes.filter(n=>n.due&&!todayNotes.includes(n));
   let remHtml='';
+  // Alertas de vencimiento Filem
+  const todayDay2=now.getDate();
+  const filemAlerts=crmClients().filter(c=>{
+    if(!c.venceDia)return false;
+    const mesKey2=`${filterYear}_${String(filterMonth).padStart(2,'0')}`;
+    const savedStatus=(state.crmStatus||{})[mesKey2]?.[c._key];
+    const pagos=incList().filter(i=>i.source==='filem'&&i.month===filterMonth&&i.year===filterYear&&i.crmClientKey===c._key);
+    const cobrado=pagos.reduce((s,i)=>s+i.amount,0);
+    const computedStatus=cobrado>=(c.paquete||0)&&(c.paquete||0)>0?'pagado':cobrado>0?'parcial':'pendiente';
+    const status=savedStatus||computedStatus;
+    return status!=='pagado';
+  }).map(c=>{
+    const diff=c.venceDia-todayDay2;
+    return {...c,diff};
+  }).filter(c=>c.diff<=3).sort((a,b)=>a.diff-b.diff);
+
+  if(filemAlerts.length){
+    const atrasados=filemAlerts.filter(c=>c.diff<0);
+    const proximos=filemAlerts.filter(c=>c.diff>=0);
+    if(atrasados.length) remHtml+=`<div class="reminder-alert" style="background:#fff5f5;border-color:#fca5a5"><div class="rem-title" style="color:#b91c1c">🎬 ⚠️ Cobros Filem vencidos</div>${atrasados.map(c=>`<div class="rem-item" style="border-bottom-color:#fca5a5"><span>👤 ${c.name} — ${fmt(c.paquete)}</span><span class="rem-due" style="color:#b91c1c">Venció día ${c.venceDia}</span></div>`).join('')}</div>`;
+    if(proximos.length) remHtml+=`<div class="reminder-alert" style="background:#fffbea;border-color:#fde68a"><div class="rem-title" style="color:#b45309">🎬 ⏰ Cobros Filem por vencer</div>${proximos.map(c=>`<div class="rem-item" style="border-bottom-color:#fde68a"><span>👤 ${c.name} — ${fmt(c.paquete)}</span><span class="rem-due" style="color:#b45309">${c.diff===0?'Hoy':'En '+c.diff+' día'+(c.diff!==1?'s':'')}</span></div>`).join('')}</div>`;
+  }
   if(todayNotes.length)remHtml+=`<div class="reminder-alert"><div class="rem-title">🔔 Recordatorios de hoy</div>${todayNotes.map(n=>`<div class="rem-item"><span>📌 ${n.text}</span><span class="rem-due">${n.due}</span></div>`).join('')}</div>`;
   if(pendingNotes.length)remHtml+=`<div class="reminder-alert" style="background:var(--surface2);border-color:var(--border)"><div class="rem-title" style="color:var(--text2)">📋 Próximos recordatorios</div>${pendingNotes.slice(0,3).map(n=>`<div class="rem-item" style="border-bottom-color:var(--border)"><span>${n.text}</span><span class="rem-due" style="color:var(--text2)">${n.due}</span></div>`).join('')}</div>`;
   document.getElementById('d-reminders').innerHTML=remHtml;
@@ -1405,14 +1440,14 @@ window.saveFabModal=()=>{
 
 // ── CRM FILEM ──
 const DEFAULT_CRM_CLIENTS=[
-  {id:'cli_nutri_carmen',name:'Nutri Carmen Farias',paquete:450000,nota:''},
-  {id:'cli_profit',name:'Profit',paquete:450000,nota:''},
-  {id:'cli_super_victor',name:'Super Victor',paquete:900000,nota:''},
-  {id:'cli_romi_gasha',name:'Romi Gasha',paquete:450000,nota:''},
-  {id:'cli_hotel_tacuaty',name:'Hotel Tacuaty',paquete:700000,nota:''},
-  {id:'cli_maria_e',name:'Maria E.',paquete:450000,nota:''},
-  {id:'cli_nutri_sofi',name:'Nutri Sofi Arguello',paquete:450000,nota:''},
-  {id:'cli_parrilla_gaucho',name:'Parrilla del Gaucho',paquete:450000,nota:''},
+  {id:'cli_nutri_carmen',name:'Nutri Carmen Farias',paquete:450000,nota:'',venceDia:25},
+  {id:'cli_profit',name:'Profit',paquete:450000,nota:'',venceDia:10},
+  {id:'cli_super_victor',name:'Super Victor',paquete:900000,nota:'',venceDia:1},
+  {id:'cli_romi_gasha',name:'Romi Gasha',paquete:450000,nota:'',venceDia:10},
+  {id:'cli_hotel_tacuaty',name:'Hotel Tacuaty',paquete:700000,nota:'',venceDia:5},
+  {id:'cli_maria_e',name:'Maria E.',paquete:450000,nota:'',venceDia:4},
+  {id:'cli_nutri_sofi',name:'Nutri Sofi Arguello',paquete:450000,nota:'',venceDia:13},
+  {id:'cli_parrilla_gaucho',name:'Parrilla del Gaucho',paquete:450000,nota:'',venceDia:1},
 ];
 const crmClients=()=>Object.entries(state.crmClients||{}).map(([k,v])=>({...v,_key:k})).sort((a,b)=>a.name.localeCompare(b.name));
 
@@ -1453,11 +1488,22 @@ function renderCRM(){
     const statusColor=status==='pagado'?'var(--green-lite)':status==='parcial'?'#fbbf24':'#e2e8f0';
     const statusLabel=status==='pagado'?'✓ Pagado':status==='parcial'?'⚡ Parcial':'⏳ Pendiente';
 
+    // Alerta de vencimiento (solo si no está pagado)
+    let venceAlert='';
+    if(status!=='pagado'&&client.venceDia){
+      const today=now.getDate();
+      const diasRestantes=client.venceDia-today;
+      if(diasRestantes<0) venceAlert=`<div class="crm-vence vence-atrasado">⚠️ Vencido hace ${Math.abs(diasRestantes)} día${Math.abs(diasRestantes)!==1?'s':''}</div>`;
+      else if(diasRestantes===0) venceAlert=`<div class="crm-vence vence-hoy">🔔 Vence hoy</div>`;
+      else if(diasRestantes<=3) venceAlert=`<div class="crm-vence vence-pronto">⏰ Vence en ${diasRestantes} día${diasRestantes!==1?'s':''}</div>`;
+    }
+
     return `<div class="crm-client" style="border-left:4px solid ${statusColor}">
+      ${venceAlert}
       <div class="cc-top">
         <div>
           <div class="cc-name">👤 ${client.name}</div>
-          <div class="cc-pkg">${paquete>0?'Paquete: '+fmt(paquete):'Sin paquete definido'}</div>
+          <div class="cc-pkg">${paquete>0?'Paquete: '+fmt(paquete):'Sin paquete definido'}${client.venceDia?' · Vence día '+client.venceDia:''}</div>
         </div>
         <div style="text-align:right;flex-shrink:0">
           <div class="cc-total" style="color:${status==='pagado'?'var(--green-mid)':status==='parcial'?'#d97706':'var(--text3)'}">${cobrado>0?fmt(cobrado):'Gs. 0'}</div>
@@ -1516,6 +1562,7 @@ window.openCRMClientModal=(key)=>{
   document.getElementById('modal-body').innerHTML=`
     <input type="text" id="crm-cli-name" placeholder="Nombre del cliente" value="${client?client.name:''}" style="${ss}">
     <input type="number" id="crm-cli-paquete" placeholder="Monto del paquete mensual (Gs.)" value="${client?client.paquete||'':''}" style="${ss}">
+    <input type="number" id="crm-cli-vence" placeholder="Día de vencimiento mensual (ej: 10)" min="1" max="31" value="${client?client.venceDia||'':''}" style="${ss}">
     <input type="text" id="crm-cli-nota" placeholder="Nota o descripción (opcional)" value="${client?client.nota||'':''}" style="${ss}">`;
   modalType='crm-client';modalEditKey=key||'';
   document.getElementById('modal-bg').classList.add('open');
