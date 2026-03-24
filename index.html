@@ -1143,25 +1143,26 @@ function render(){
   let remHtml='';
   // Alertas de vencimiento Filem
   const todayDay2=now.getDate();
-  const filemAlerts=crmClients().filter(c=>{
-    if(!c.venceDia)return false;
-    const mesKey2=`${filterYear}_${String(filterMonth).padStart(2,'0')}`;
-    const savedStatus=(state.crmStatus||{})[mesKey2]?.[c._key];
-    const pagos=incList().filter(i=>i.source==='filem'&&i.month===filterMonth&&i.year===filterYear&&i.crmClientKey===c._key);
-    const cobrado=pagos.reduce((s,i)=>s+i.amount,0);
-    const computedStatus=cobrado>=(c.paquete||0)&&(c.paquete||0)>0?'pagado':cobrado>0?'parcial':'pendiente';
-    const status=savedStatus||computedStatus;
-    return status!=='pagado';
-  }).map(c=>{
-    const diff=c.venceDia-todayDay2;
-    return {...c,diff};
-  }).filter(c=>c.diff<=3).sort((a,b)=>a.diff-b.diff);
+  // Alertas Filem — solo en el mes actual, y solo si el vencimiento es hoy o en los próximos 3 días
+  const isCurrentMonthDash=(filterMonth===now.getMonth()&&filterYear===now.getFullYear());
+  if(isCurrentMonthDash){
+    const mesKey2dash=`${filterYear}_${String(filterMonth).padStart(2,'0')}`;
+    const filemAlerts=crmClients().filter(c=>{
+      if(!c.venceDia)return false;
+      const savedStatus=(state.crmStatus||{})[mesKey2dash]?.[c._key];
+      const pagos=incList().filter(i=>i.source==='filem'&&i.month===filterMonth&&i.year===filterYear&&i.crmClientKey===c._key);
+      const cobrado=pagos.reduce((s,i)=>s+i.amount,0);
+      const computedStatus=cobrado>=(c.paquete||0)&&(c.paquete||0)>0?'pagado':cobrado>0?'parcial':'pendiente';
+      const status=savedStatus||computedStatus;
+      if(status==='pagado')return false;
+      const diff=c.venceDia-todayDay2;
+      // Solo alertar si vence hoy o en los próximos 3 días (no si ya pasó)
+      return diff>=0&&diff<=3;
+    }).map(c=>({...c,diff:c.venceDia-todayDay2})).sort((a,b)=>a.diff-b.diff);
 
-  if(filemAlerts.length){
-    const atrasados=filemAlerts.filter(c=>c.diff<0);
-    const proximos=filemAlerts.filter(c=>c.diff>=0);
-    if(atrasados.length) remHtml+=`<div class="reminder-alert" style="background:#fff5f5;border-color:#fca5a5"><div class="rem-title" style="color:#b91c1c">🎬 ⚠️ Cobros Filem vencidos</div>${atrasados.map(c=>`<div class="rem-item" style="border-bottom-color:#fca5a5"><span>👤 ${c.name} — ${fmt(c.paquete)}</span><span class="rem-due" style="color:#b91c1c">Venció día ${c.venceDia}</span></div>`).join('')}</div>`;
-    if(proximos.length) remHtml+=`<div class="reminder-alert" style="background:#fffbea;border-color:#fde68a"><div class="rem-title" style="color:#b45309">🎬 ⏰ Cobros Filem por vencer</div>${proximos.map(c=>`<div class="rem-item" style="border-bottom-color:#fde68a"><span>👤 ${c.name} — ${fmt(c.paquete)}</span><span class="rem-due" style="color:#b45309">${c.diff===0?'Hoy':'En '+c.diff+' día'+(c.diff!==1?'s':'')}</span></div>`).join('')}</div>`;
+    if(filemAlerts.length){
+      remHtml+=`<div class="reminder-alert" style="background:#fffbea;border-color:#fde68a"><div class="rem-title" style="color:#b45309">🎬 ⏰ Cobros Filem por vencer</div>${filemAlerts.map(c=>`<div class="rem-item" style="border-bottom-color:#fde68a"><span>👤 ${c.name} — ${fmt(c.paquete)}</span><span class="rem-due" style="color:#b45309">${c.diff===0?'Vence hoy':'En '+c.diff+' día'+(c.diff!==1?'s':'')}</span></div>`).join('')}</div>`;
+    }
   }
   if(todayNotes.length)remHtml+=`<div class="reminder-alert"><div class="rem-title">🔔 Recordatorios de hoy</div>${todayNotes.map(n=>`<div class="rem-item"><span>📌 ${n.text}</span><span class="rem-due">${n.due}</span></div>`).join('')}</div>`;
   if(pendingNotes.length)remHtml+=`<div class="reminder-alert" style="background:var(--surface2);border-color:var(--border)"><div class="rem-title" style="color:var(--text2)">📋 Próximos recordatorios</div>${pendingNotes.slice(0,3).map(n=>`<div class="rem-item" style="border-bottom-color:var(--border)"><span>${n.text}</span><span class="rem-due" style="color:var(--text2)">${n.due}</span></div>`).join('')}</div>`;
@@ -1488,14 +1489,20 @@ function renderCRM(){
     const statusColor=status==='pagado'?'var(--green-lite)':status==='parcial'?'#fbbf24':'#e2e8f0';
     const statusLabel=status==='pagado'?'✓ Pagado':status==='parcial'?'⚡ Parcial':'⏳ Pendiente';
 
-    // Alerta de vencimiento (solo si no está pagado)
+    // Alerta de vencimiento — solo si no pagó Y el vencimiento cae este mes/año filtrado
     let venceAlert='';
     if(status!=='pagado'&&client.venceDia){
-      const today=now.getDate();
-      const diasRestantes=client.venceDia-today;
-      if(diasRestantes<0) venceAlert=`<div class="crm-vence vence-atrasado">⚠️ Vencido hace ${Math.abs(diasRestantes)} día${Math.abs(diasRestantes)!==1?'s':''}</div>`;
-      else if(diasRestantes===0) venceAlert=`<div class="crm-vence vence-hoy">🔔 Vence hoy</div>`;
-      else if(diasRestantes<=3) venceAlert=`<div class="crm-vence vence-pronto">⏰ Vence en ${diasRestantes} día${diasRestantes!==1?'s':''}</div>`;
+      const isCurrentMonth=(filterMonth===now.getMonth()&&filterYear===now.getFullYear());
+      if(isCurrentMonth){
+        const today=now.getDate();
+        const diasRestantes=client.venceDia-today;
+        // Solo alertar si el vencimiento AÚN NO pasó o es hoy (no si ya pasó sin pagar)
+        // Si ya pasó, simplemente está pendiente — no "vencido" porque el ciclo es mensual
+        if(diasRestantes===0) venceAlert=`<div class="crm-vence vence-hoy">🔔 Vence hoy</div>`;
+        else if(diasRestantes>0&&diasRestantes<=3) venceAlert=`<div class="crm-vence vence-pronto">⏰ Vence en ${diasRestantes} día${diasRestantes!==1?'s':''}</div>`;
+        // Si diasRestantes < 0: el día ya pasó este mes y no pagó → mostrar como pendiente sin alerta de "vencido"
+        // porque el vencimiento es mensual y puede pagar con retraso
+      }
     }
 
     return `<div class="crm-client" style="border-left:4px solid ${statusColor}">
