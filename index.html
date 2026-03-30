@@ -1468,17 +1468,34 @@ function renderCRM(){
   const clients=crmClients();
   const totalEsperado=clients.reduce((s,c)=>s+(c.paquete||0),0);
 
-  // Construir mapa de pagos por cliente UNA SOLA VEZ — evita doble filtrado inconsistente
-  // Un ingreso pertenece a un cliente si tiene crmClientKey, o si no tiene key asignada y el nombre matchea
+  // Mapa de pagos por cliente
   const pagosPorCliente={};
   clients.forEach(c=>pagosPorCliente[c._key]=[]);
+  const sinAsignar=[];
+
+  // Helper: nombre parcial flexible — cualquier palabra del nombre del cliente que aparezca en la descripción
+  const matchNombre=(desc,clientName)=>{
+    if(!desc||!clientName)return false;
+    const d=desc.toLowerCase().trim();
+    const words=clientName.toLowerCase().split(/\s+/).filter(w=>w.length>2);
+    // Coincide si al menos 2 palabras del nombre están en la descripción, o si es nombre corto con 1 palabra
+    if(words.length<=1)return d.includes(words[0]||'');
+    return words.filter(w=>d.includes(w)).length>=Math.min(2,words.length);
+  };
+
   filemInc.forEach(inc=>{
     if(inc.crmClientKey&&pagosPorCliente[inc.crmClientKey]!==undefined){
+      // Cobro registrado desde el CRM — asignación directa
       pagosPorCliente[inc.crmClientKey].push(inc);
     } else if(!inc.crmClientKey){
-      // fallback por nombre para cobros viejos sin crmClientKey
-      const match=clients.find(c=>(inc.description||'').toLowerCase().includes((c.name||'').toLowerCase()));
-      if(match) pagosPorCliente[match._key].push(inc);
+      // Fallback mejorado: busca por nombre flexible
+      const match=clients.find(c=>matchNombre(inc.description,c.name));
+      if(match){
+        pagosPorCliente[match._key].push(inc);
+      } else {
+        // No se pudo asignar a ningún cliente
+        sinAsignar.push(inc);
+      }
     }
   });
 
@@ -1559,11 +1576,26 @@ function renderCRM(){
       </table>
     </div>`:'';
 
+  // Cobros sin asignar
+  const sinAsignarHTML=sinAsignar.length?`
+    <div style="background:#fff8e1;border:1px solid #fde68a;border-radius:14px;padding:14px;margin-bottom:12px">
+      <div style="font-size:12px;font-weight:700;color:#b45309;margin-bottom:10px;text-transform:uppercase;letter-spacing:.6px">⚠️ Cobros sin asignar a cliente</div>
+      <div style="font-size:11px;color:#92400e;margin-bottom:10px">Estos ingresos de Filem no pudieron vincularse a ningún cliente. Usá el botón 💰 Registrar cobro dentro de cada cliente para asociarlos correctamente.</div>
+      ${sinAsignar.map(i=>`
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #fde68a;font-size:13px">
+          <div>
+            <div style="font-weight:600">${i.description||'Sin descripción'}</div>
+            <div style="font-size:11px;color:#b45309">${i.date?new Date(i.date).toLocaleDateString('es-PY'):''}</div>
+          </div>
+          <div style="font-weight:700;color:var(--green-mid)">${fmt(i.amount)}</div>
+        </div>`).join('')}
+    </div>`:'';
+
   document.getElementById('crm-total-cobrado').textContent=fmt(totalCobrado);
   document.getElementById('crm-total-esperado').textContent=fmt(totalEsperado);
   document.getElementById('crm-clientes-ok').textContent=`${clientesOk}/${clients.length}`;
   document.getElementById('crm-clients-list').innerHTML=clients.length
-    ? clientsHTML+resumenHTML
+    ? sinAsignarHTML+clientsHTML+resumenHTML
     : `<div class="empty">No hay clientes. Agregá uno con el botón de arriba.</div>`;
 }
 
