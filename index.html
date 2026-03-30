@@ -543,6 +543,7 @@ let filterMonth=now.getMonth(),filterYear=now.getFullYear();
 let filterIncomeSource=null;   // null = todos
 let filterExpenseCat=null;     // null = todas
 let state={incomes:{},expenses:{},accountBalances:{},accountTransactions:{},transfers:{},budgets:{},notes:{},closedMonths:{},crmData:{},crmClients:{},crmStatus:{},sources:{},categories:{},accounts:{}};
+let dbSynced=false; // true only after first Firebase load
 
 // ── HELPERS ──
 function syncBar(cls,msg){const e=document.getElementById('sync-bar');e.className=cls;e.textContent=msg;}
@@ -591,6 +592,7 @@ function listenAll(){
     state.sources=val.sources||Object.fromEntries(DEFAULT_SOURCES.map(s=>[s.id,s]));
     state.categories=val.categories||Object.fromEntries(DEFAULT_CATS.map(c=>[c.id,c]));
     state.accounts=val.accounts||Object.fromEntries(DEFAULT_ACCOUNTS.map(a=>[a.id,a]));
+    dbSynced=true;
     syncBar('ok','🟢 Sincronizado en tiempo real · datos compartidos');
     // Al primer arranque: si el mes actual está cerrado, avanzar al siguiente automáticamente
     if(!listenAll._initDone){
@@ -670,6 +672,7 @@ window.toggleCloseMes=()=>{
 window.onCatChange=()=>{const c=cats().find(x=>x.id===document.getElementById('e-category').value);if(c?.defaultSource)document.getElementById('e-source').value=c.defaultSource;};
 
 window.addIncome=()=>{
+  if(!dbSynced){alert('Esperá un momento, la app está sincronizando...');return;}
   const entryMonth=+document.getElementById('i-month').value;
   const entryYear=+document.getElementById('i-year').value;
   if(isClosed(entryMonth,entryYear)){alert(`${MONTHS[entryMonth]} ${entryYear} está cerrado. Reabrilo desde la pestaña Más.`);return;}
@@ -683,6 +686,7 @@ window.addIncome=()=>{
 };
 
 window.addExpense=()=>{
+  if(!dbSynced){alert('Esperá un momento, la app está sincronizando...');return;}
   const entryMonth=+document.getElementById('e-month').value;
   const entryYear=+document.getElementById('e-year').value;
   if(isClosed(entryMonth,entryYear)){alert(`${MONTHS[entryMonth]} ${entryYear} está cerrado. Reabrilo desde la pestaña Más.`);return;}
@@ -1423,11 +1427,13 @@ window.closeFabModal=(e)=>{
   if(!e||e.target.id==='fab-modal-bg') document.getElementById('fab-modal-bg').classList.remove('open');
 };
 window.saveFabModal=()=>{
+  if(!dbSynced){alert('Esperá un momento, la app está sincronizando datos...');return;}
   const amt=parseFloat(document.getElementById('fq-amount').value);if(!amt)return alert('Ingresá un monto');
   const acc=document.getElementById('fq-account').value;
   const dateVal=document.getElementById('fq-date').value;
   const dateObj=dateVal?new Date(dateVal+'T12:00:00'):new Date();
-  const month=filterMonth,year=filterYear;
+  // Siempre usar la fecha del campo, nunca el filtro global
+  const month=dateObj.getMonth(),year=dateObj.getFullYear();
   if(isClosed(month,year)){alert(`${MONTHS[month]} ${year} está cerrado. Cambiá el mes activo desde la barra superior.`);return;}
   if(fabType==='ingreso'){
     push(ref(db,'/incomes'),{source:document.getElementById('fq-source').value,account:acc,amount:amt,description:document.getElementById('fq-desc').value,month,year,date:dateObj.toISOString()});
