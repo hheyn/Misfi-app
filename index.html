@@ -1393,35 +1393,91 @@ window.closeFab=()=>{
   });
 };
 let fabType='';
+
+// Encuentra el primer mes abierto desde hoy en adelante
+function firstOpenMonth(){
+  const n=new Date();
+  for(let i=0;i<6;i++){
+    let m=n.getMonth()+i,y=n.getFullYear();
+    if(m>11){m-=12;y++;}
+    if(!isClosed(m,y))return{m,y};
+  }
+  return{m:n.getMonth(),y:n.getFullYear()};
+}
+
 window.fabQuick=(type)=>{
   fabType=type;
   closeFab();
   const sO=sources().map(s=>({v:s.id,l:`${s.icon} ${s.label}`}));
   const cO=cats().map(c=>({v:c.id,l:`${c.icon} ${c.label}`}));
   const aO=accs().map(a=>({v:a.id,l:`${a.icon} ${a.owner} — ${a.label}`}));
+  const mO=MONTHS.map((m,i)=>({v:i,l:m}));
+  const yO=[2024,2025,2026,2027,2028].map(y=>({v:y,l:y}));
   const todayISO=new Date().toISOString().split('T')[0];
+  // Auto-detectar primer mes abierto
+  const {m:openM,y:openY}=firstOpenMonth();
   const ss='width:100%;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:9px 10px;font-size:13px;margin-bottom:10px';
+  const mSel=`<div style="display:flex;gap:6px;margin-bottom:10px">
+    <select id="fq-month" style="flex:1;${ss.replace('margin-bottom:10px','')}">
+      ${mO.map(o=>`<option value="${o.v}"${o.v===openM?' selected':''}>${o.l}</option>`).join('')}
+    </select>
+    <select id="fq-year" style="flex:1;${ss.replace('margin-bottom:10px','')}">
+      ${yO.map(o=>`<option value="${o.v}"${o.v===openY?' selected':''}>${o.l}</option>`).join('')}
+    </select>
+  </div>`;
+  const closedWarn=isClosed(openM,openY)?`<div style="background:#fff5f5;border:1px solid #fca5a5;border-radius:8px;padding:8px 12px;font-size:12px;color:#b91c1c;margin-bottom:10px">⚠️ ${MONTHS[openM]} ${openY} está cerrado.</div>`:'';
   if(type==='ingreso'){
-    document.getElementById('fab-modal-title').textContent='💚 Ingreso rápido';
+    document.getElementById('fab-modal-title').textContent='💚 Nuevo Ingreso';
     document.getElementById('fab-modal-save').className='btn btn-green btn-sm';
     document.getElementById('fab-modal-body').innerHTML=`
+      ${closedWarn}
       <select id="fq-source" style="${ss}">${sO.map(o=>`<option value="${o.v}">${o.l}</option>`).join('')}</select>
-      <input type="number" id="fq-amount" placeholder="Monto (Gs.)" style="${ss}">
+      <input type="number" id="fq-amount" placeholder="Monto (Gs.)" style="${ss}" inputmode="numeric">
       <input type="text" id="fq-desc" placeholder="Descripción (opcional)" style="${ss}">
       <select id="fq-account" style="${ss}">${aO.map(o=>`<option value="${o.v}">${o.l}</option>`).join('')}</select>
-      <input type="date" id="fq-date" value="${todayISO}" style="${ss}">`;
+      <label style="font-size:11px;font-weight:600;color:var(--text2);display:block;margin-bottom:4px">Fecha</label>
+      <input type="date" id="fq-date" value="${todayISO}" style="${ss}" onchange="syncFabDate()">
+      <label style="font-size:11px;font-weight:600;color:var(--text2);display:block;margin-bottom:4px">Mes contable</label>
+      ${mSel}`;
   } else {
-    document.getElementById('fab-modal-title').textContent='🔴 Gasto rápido';
+    document.getElementById('fab-modal-title').textContent='🔴 Nuevo Gasto';
     document.getElementById('fab-modal-save').className='btn btn-red btn-sm';
     document.getElementById('fab-modal-body').innerHTML=`
-      <select id="fq-cat" style="${ss}">${cO.map(o=>`<option value="${o.v}">${o.l}</option>`).join('')}</select>
+      ${closedWarn}
+      <select id="fq-cat" style="${ss}" onchange="syncFabCat()">${cO.map(o=>`<option value="${o.v}">${o.l}</option>`).join('')}</select>
       <select id="fq-source" style="${ss}">${sO.map(o=>`<option value="${o.v}">${o.l}</option>`).join('')}</select>
       <select id="fq-account" style="${ss}">${aO.map(o=>`<option value="${o.v}">${o.l}</option>`).join('')}</select>
-      <input type="number" id="fq-amount" placeholder="Monto (Gs.)" style="${ss}">
+      <input type="number" id="fq-amount" placeholder="Monto (Gs.)" style="${ss}" inputmode="numeric">
       <input type="text" id="fq-desc" placeholder="Descripción (opcional)" style="${ss}">
-      <input type="date" id="fq-date" value="${todayISO}" style="${ss}">`;
+      <label style="font-size:11px;font-weight:600;color:var(--text2);display:block;margin-bottom:4px">Fecha</label>
+      <input type="date" id="fq-date" value="${todayISO}" style="${ss}" onchange="syncFabDate()">
+      <label style="font-size:11px;font-weight:600;color:var(--text2);display:block;margin-bottom:4px">Mes contable</label>
+      ${mSel}`;
+    // Apply category default source after render
+    setTimeout(syncFabCat,50);
   }
   document.getElementById('fab-modal-bg').classList.add('open');
+  // Focus amount
+  setTimeout(()=>{const a=document.getElementById('fq-amount');if(a)a.focus();},100);
+};
+
+// Sincronizar fecha → mes contable
+window.syncFabDate=()=>{
+  const dv=document.getElementById('fq-date')?.value;
+  if(!dv)return;
+  const d=new Date(dv+'T12:00:00');
+  const ms=document.getElementById('fq-month');
+  const ys=document.getElementById('fq-year');
+  if(ms)ms.value=d.getMonth();
+  if(ys)ys.value=d.getFullYear();
+};
+
+// Sincronizar fuente por defecto al cambiar categoría (gasto)
+window.syncFabCat=()=>{
+  const catId=document.getElementById('fq-cat')?.value;
+  if(!catId)return;
+  const c=cats().find(x=>x.id===catId);
+  if(c?.defaultSource){const s=document.getElementById('fq-source');if(s)s.value=c.defaultSource;}
 };
 window.closeFabModal=(e)=>{
   if(!e||e.target.id==='fab-modal-bg') document.getElementById('fab-modal-bg').classList.remove('open');
@@ -1432,9 +1488,10 @@ window.saveFabModal=()=>{
   const acc=document.getElementById('fq-account').value;
   const dateVal=document.getElementById('fq-date').value;
   const dateObj=dateVal?new Date(dateVal+'T12:00:00'):new Date();
-  // Siempre usar la fecha del campo, nunca el filtro global
-  const month=dateObj.getMonth(),year=dateObj.getFullYear();
-  if(isClosed(month,year)){alert(`${MONTHS[month]} ${year} está cerrado. Cambiá el mes activo desde la barra superior.`);return;}
+  // Usar siempre el selector de mes contable del formulario
+  const month=+(document.getElementById('fq-month')?.value??dateObj.getMonth());
+  const year=+(document.getElementById('fq-year')?.value??dateObj.getFullYear());
+  if(isClosed(month,year)){alert(`${MONTHS[month]} ${year} está cerrado. Cambiá el mes contable en el formulario.`);return;}
   if(fabType==='ingreso'){
     push(ref(db,'/incomes'),{source:document.getElementById('fq-source').value,account:acc,amount:amt,description:document.getElementById('fq-desc').value,month,year,date:dateObj.toISOString()});
     set(ref(db,`/accountBalances/${acc}`),(state.accountBalances[acc]||0)+amt);
