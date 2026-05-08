@@ -169,6 +169,32 @@
     .fchip.active{background:var(--green);color:#fff;border-color:var(--green)}
     .fchip:active{transform:scale(.95)}
 
+    /* ── Reporte personalizado ── */
+    .rep-builder{background:var(--surface);border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:var(--shadow);border:1px solid var(--border)}
+    .rep-builder .rb-title{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px}
+    .rep-builder .rb-row{display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+    .rep-builder label{font-size:12px;font-weight:600;color:var(--text2);min-width:72px;flex-shrink:0}
+    .rep-builder select,.rep-builder input[type=date]{flex:1;min-width:100px;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:8px 10px;font-size:13px}
+    .rep-toggle-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+    .rep-toggle{padding:6px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;user-select:none;white-space:nowrap}
+    .rep-toggle.on{background:var(--green);color:#fff;border-color:var(--green)}
+    .rep-section-card{background:var(--surface);border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);border:1px solid var(--border)}
+    .rep-section-card h3{font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+    .rep-section-card h3 span{font-size:13px;font-weight:700;text-transform:none;letter-spacing:0}
+    .rep-row-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+    .rep-row-item:last-child{border-bottom:none;padding-bottom:0}
+    .rep-row-item .rri-main{font-weight:600}
+    .rep-row-item .rri-sub{font-size:11px;color:var(--text3);margin-top:2px}
+    .rep-row-item .rri-amt{font-weight:700;flex-shrink:0;margin-left:10px}
+    .rep-summary-boxes{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+    .rep-sum-box{flex:1;min-width:90px;border-radius:12px;padding:12px 14px;color:#fff}
+    .rep-sum-box .rsb-lbl{font-size:10px;color:rgba(255,255,255,.75);font-weight:500}
+    .rep-sum-box .rsb-val{font-size:16px;font-weight:700;margin-top:4px}
+    .rep-acc-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
+    .rep-acc-row:last-child{border-bottom:none}
+    .rep-acc-row .rar-name{font-weight:600}
+    .rep-acc-row .rar-owner{font-size:11px;color:var(--text3)}
+
     /* Reporte por fecha */
     .report-date-box{background:var(--surface);border-radius:16px;padding:16px;margin-bottom:16px;box-shadow:var(--shadow);border:1px solid var(--border)}
     .report-date-box .rdb-row{display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
@@ -431,16 +457,72 @@
     <button class="btn btn-green" style="margin-bottom:16px" onclick="generarComparativo()">📊 Comparar</button>
     <div id="comp-output"></div>
   </div>
-  <div class="section-title" style="margin-top:8px">Reporte por fecha</div>
-  <div class="report-date-box" style="margin-bottom:16px">
-    <div class="rdb-row">
-      <label>Fecha</label>
-      <input type="date" id="rep-date2">
-      <button class="btn btn-green btn-sm" onclick="generarReporteFromMas()" style="margin-top:0">Ver reporte</button>
+  <div class="section-title" style="margin-top:8px">📋 Reporte personalizado</div>
+
+  <!-- BLOQUE 1: Período -->
+  <div class="rep-builder">
+    <div class="rb-title">Período</div>
+    <div class="rep-toggle-row" id="rep-period-toggles">
+      <span class="rep-toggle on" onclick="setPeriod('mes',this)">Mes contable</span>
+      <span class="rep-toggle" onclick="setPeriod('rango',this)">Rango de fechas</span>
     </div>
-    <div style="font-size:11px;color:var(--text3)">Saldos y movimientos exactos a ese día.</div>
+    <div id="rep-period-mes">
+      <div class="rb-row">
+        <label>Mes</label>
+        <select id="rep-m"></select>
+        <select id="rep-y"></select>
+      </div>
+    </div>
+    <div id="rep-period-rango" style="display:none">
+      <div class="rb-row">
+        <label>Desde</label>
+        <input type="date" id="rep-desde">
+      </div>
+      <div class="rb-row">
+        <label>Hasta</label>
+        <input type="date" id="rep-hasta">
+      </div>
+    </div>
   </div>
-  <div id="rep-output2"></div>
+
+  <!-- BLOQUE 2: Qué mostrar -->
+  <div class="rep-builder">
+    <div class="rb-title">Mostrar</div>
+    <div class="rep-toggle-row">
+      <span class="rep-toggle on" id="rept-ingresos" onclick="toggleRepTipo('ingresos',this)">💚 Ingresos</span>
+      <span class="rep-toggle on" id="rept-gastos" onclick="toggleRepTipo('gastos',this)">🔴 Gastos</span>
+      <span class="rep-toggle on" id="rept-cuentas" onclick="toggleRepTipo('cuentas',this)">🏦 Cuentas</span>
+      <span class="rep-toggle on" id="rept-resumen" onclick="toggleRepTipo('resumen',this)">📊 Resumen</span>
+    </div>
+  </div>
+
+  <!-- BLOQUE 3: Filtros -->
+  <div class="rep-builder">
+    <div class="rb-title">Filtrar por</div>
+    <div class="rb-row">
+      <label>Persona</label>
+      <select id="rep-persona">
+        <option value="todos">Todos</option>
+        <option value="Héctor">👨‍💼 Héctor</option>
+        <option value="Romina">👩 Romina</option>
+      </select>
+    </div>
+    <div class="rb-row">
+      <label>Fuente</label>
+      <select id="rep-fuente"><option value="todas">Todas</option></select>
+    </div>
+    <div class="rb-row">
+      <label>Categoría</label>
+      <select id="rep-categoria"><option value="todas">Todas</option></select>
+    </div>
+    <div class="rb-row">
+      <label>Cuenta</label>
+      <select id="rep-cuenta"><option value="todas">Todas</option></select>
+    </div>
+  </div>
+
+  <button class="btn btn-green" style="margin-bottom:14px" onclick="generarReporteCustom()">📋 Generar reporte</button>
+  <div id="rep-custom-output"></div>
   <div class="section-title" style="margin-top:8px">Cierre de mes <button class="add-link" onclick="toggleCloseMes()">Cerrar / Abrir mes</button></div>
   <div id="close-status"></div>
 
@@ -543,7 +625,6 @@ let filterMonth=now.getMonth(),filterYear=now.getFullYear();
 let filterIncomeSource=null;   // null = todos
 let filterExpenseCat=null;     // null = todas
 let state={incomes:{},expenses:{},accountBalances:{},accountTransactions:{},transfers:{},budgets:{},notes:{},closedMonths:{},crmData:{},crmClients:{},crmStatus:{},sources:{},categories:{},accounts:{}};
-let dbSynced=false; // true only after first Firebase load
 
 // ── HELPERS ──
 function syncBar(cls,msg){const e=document.getElementById('sync-bar');e.className=cls;e.textContent=msg;}
@@ -592,7 +673,6 @@ function listenAll(){
     state.sources=val.sources||Object.fromEntries(DEFAULT_SOURCES.map(s=>[s.id,s]));
     state.categories=val.categories||Object.fromEntries(DEFAULT_CATS.map(c=>[c.id,c]));
     state.accounts=val.accounts||Object.fromEntries(DEFAULT_ACCOUNTS.map(a=>[a.id,a]));
-    dbSynced=true;
     syncBar('ok','🟢 Sincronizado en tiempo real · datos compartidos');
     // Al primer arranque: si el mes actual está cerrado, avanzar al siguiente automáticamente
     if(!listenAll._initDone){
@@ -672,7 +752,6 @@ window.toggleCloseMes=()=>{
 window.onCatChange=()=>{const c=cats().find(x=>x.id===document.getElementById('e-category').value);if(c?.defaultSource)document.getElementById('e-source').value=c.defaultSource;};
 
 window.addIncome=()=>{
-  if(!dbSynced){alert('Esperá un momento, la app está sincronizando...');return;}
   const entryMonth=+document.getElementById('i-month').value;
   const entryYear=+document.getElementById('i-year').value;
   if(isClosed(entryMonth,entryYear)){alert(`${MONTHS[entryMonth]} ${entryYear} está cerrado. Reabrilo desde la pestaña Más.`);return;}
@@ -686,7 +765,6 @@ window.addIncome=()=>{
 };
 
 window.addExpense=()=>{
-  if(!dbSynced){alert('Esperá un momento, la app está sincronizando...');return;}
   const entryMonth=+document.getElementById('e-month').value;
   const entryYear=+document.getElementById('e-year').value;
   if(isClosed(entryMonth,entryYear)){alert(`${MONTHS[entryMonth]} ${entryYear} está cerrado. Reabrilo desde la pestaña Más.`);return;}
@@ -1147,26 +1225,25 @@ function render(){
   let remHtml='';
   // Alertas de vencimiento Filem
   const todayDay2=now.getDate();
-  // Alertas Filem — solo en el mes actual, y solo si el vencimiento es hoy o en los próximos 3 días
-  const isCurrentMonthDash=(filterMonth===now.getMonth()&&filterYear===now.getFullYear());
-  if(isCurrentMonthDash){
-    const mesKey2dash=`${filterYear}_${String(filterMonth).padStart(2,'0')}`;
-    const filemAlerts=crmClients().filter(c=>{
-      if(!c.venceDia)return false;
-      const savedStatus=(state.crmStatus||{})[mesKey2dash]?.[c._key];
-      const pagos=incList().filter(i=>i.source==='filem'&&i.month===filterMonth&&i.year===filterYear&&i.crmClientKey===c._key);
-      const cobrado=pagos.reduce((s,i)=>s+i.amount,0);
-      const computedStatus=cobrado>=(c.paquete||0)&&(c.paquete||0)>0?'pagado':cobrado>0?'parcial':'pendiente';
-      const status=savedStatus||computedStatus;
-      if(status==='pagado')return false;
-      const diff=c.venceDia-todayDay2;
-      // Solo alertar si vence hoy o en los próximos 3 días (no si ya pasó)
-      return diff>=0&&diff<=3;
-    }).map(c=>({...c,diff:c.venceDia-todayDay2})).sort((a,b)=>a.diff-b.diff);
+  const filemAlerts=crmClients().filter(c=>{
+    if(!c.venceDia)return false;
+    const mesKey2=`${filterYear}_${String(filterMonth).padStart(2,'0')}`;
+    const savedStatus=(state.crmStatus||{})[mesKey2]?.[c._key];
+    const pagos=incList().filter(i=>i.source==='filem'&&i.month===filterMonth&&i.year===filterYear&&i.crmClientKey===c._key);
+    const cobrado=pagos.reduce((s,i)=>s+i.amount,0);
+    const computedStatus=cobrado>=(c.paquete||0)&&(c.paquete||0)>0?'pagado':cobrado>0?'parcial':'pendiente';
+    const status=savedStatus||computedStatus;
+    return status!=='pagado';
+  }).map(c=>{
+    const diff=c.venceDia-todayDay2;
+    return {...c,diff};
+  }).filter(c=>c.diff<=3).sort((a,b)=>a.diff-b.diff);
 
-    if(filemAlerts.length){
-      remHtml+=`<div class="reminder-alert" style="background:#fffbea;border-color:#fde68a"><div class="rem-title" style="color:#b45309">🎬 ⏰ Cobros Filem por vencer</div>${filemAlerts.map(c=>`<div class="rem-item" style="border-bottom-color:#fde68a"><span>👤 ${c.name} — ${fmt(c.paquete)}</span><span class="rem-due" style="color:#b45309">${c.diff===0?'Vence hoy':'En '+c.diff+' día'+(c.diff!==1?'s':'')}</span></div>`).join('')}</div>`;
-    }
+  if(filemAlerts.length){
+    const atrasados=filemAlerts.filter(c=>c.diff<0);
+    const proximos=filemAlerts.filter(c=>c.diff>=0);
+    if(atrasados.length) remHtml+=`<div class="reminder-alert" style="background:#fff5f5;border-color:#fca5a5"><div class="rem-title" style="color:#b91c1c">🎬 ⚠️ Cobros Filem vencidos</div>${atrasados.map(c=>`<div class="rem-item" style="border-bottom-color:#fca5a5"><span>👤 ${c.name} — ${fmt(c.paquete)}</span><span class="rem-due" style="color:#b91c1c">Venció día ${c.venceDia}</span></div>`).join('')}</div>`;
+    if(proximos.length) remHtml+=`<div class="reminder-alert" style="background:#fffbea;border-color:#fde68a"><div class="rem-title" style="color:#b45309">🎬 ⏰ Cobros Filem por vencer</div>${proximos.map(c=>`<div class="rem-item" style="border-bottom-color:#fde68a"><span>👤 ${c.name} — ${fmt(c.paquete)}</span><span class="rem-due" style="color:#b45309">${c.diff===0?'Hoy':'En '+c.diff+' día'+(c.diff!==1?'s':'')}</span></div>`).join('')}</div>`;
   }
   if(todayNotes.length)remHtml+=`<div class="reminder-alert"><div class="rem-title">🔔 Recordatorios de hoy</div>${todayNotes.map(n=>`<div class="rem-item"><span>📌 ${n.text}</span><span class="rem-due">${n.due}</span></div>`).join('')}</div>`;
   if(pendingNotes.length)remHtml+=`<div class="reminder-alert" style="background:var(--surface2);border-color:var(--border)"><div class="rem-title" style="color:var(--text2)">📋 Próximos recordatorios</div>${pendingNotes.slice(0,3).map(n=>`<div class="rem-item" style="border-bottom-color:var(--border)"><span>${n.text}</span><span class="rem-due" style="color:var(--text2)">${n.due}</span></div>`).join('')}</div>`;
@@ -1393,105 +1470,46 @@ window.closeFab=()=>{
   });
 };
 let fabType='';
-
-// Encuentra el primer mes abierto desde hoy en adelante
-function firstOpenMonth(){
-  const n=new Date();
-  for(let i=0;i<6;i++){
-    let m=n.getMonth()+i,y=n.getFullYear();
-    if(m>11){m-=12;y++;}
-    if(!isClosed(m,y))return{m,y};
-  }
-  return{m:n.getMonth(),y:n.getFullYear()};
-}
-
 window.fabQuick=(type)=>{
   fabType=type;
   closeFab();
   const sO=sources().map(s=>({v:s.id,l:`${s.icon} ${s.label}`}));
   const cO=cats().map(c=>({v:c.id,l:`${c.icon} ${c.label}`}));
   const aO=accs().map(a=>({v:a.id,l:`${a.icon} ${a.owner} — ${a.label}`}));
-  const mO=MONTHS.map((m,i)=>({v:i,l:m}));
-  const yO=[2024,2025,2026,2027,2028].map(y=>({v:y,l:y}));
   const todayISO=new Date().toISOString().split('T')[0];
-  // Auto-detectar primer mes abierto
-  const {m:openM,y:openY}=firstOpenMonth();
   const ss='width:100%;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:9px 10px;font-size:13px;margin-bottom:10px';
-  const mSel=`<div style="display:flex;gap:6px;margin-bottom:10px">
-    <select id="fq-month" style="flex:1;${ss.replace('margin-bottom:10px','')}">
-      ${mO.map(o=>`<option value="${o.v}"${o.v===openM?' selected':''}>${o.l}</option>`).join('')}
-    </select>
-    <select id="fq-year" style="flex:1;${ss.replace('margin-bottom:10px','')}">
-      ${yO.map(o=>`<option value="${o.v}"${o.v===openY?' selected':''}>${o.l}</option>`).join('')}
-    </select>
-  </div>`;
-  const closedWarn=isClosed(openM,openY)?`<div style="background:#fff5f5;border:1px solid #fca5a5;border-radius:8px;padding:8px 12px;font-size:12px;color:#b91c1c;margin-bottom:10px">⚠️ ${MONTHS[openM]} ${openY} está cerrado.</div>`:'';
   if(type==='ingreso'){
-    document.getElementById('fab-modal-title').textContent='💚 Nuevo Ingreso';
+    document.getElementById('fab-modal-title').textContent='💚 Ingreso rápido';
     document.getElementById('fab-modal-save').className='btn btn-green btn-sm';
     document.getElementById('fab-modal-body').innerHTML=`
-      ${closedWarn}
       <select id="fq-source" style="${ss}">${sO.map(o=>`<option value="${o.v}">${o.l}</option>`).join('')}</select>
-      <input type="number" id="fq-amount" placeholder="Monto (Gs.)" style="${ss}" inputmode="numeric">
+      <input type="number" id="fq-amount" placeholder="Monto (Gs.)" style="${ss}">
       <input type="text" id="fq-desc" placeholder="Descripción (opcional)" style="${ss}">
       <select id="fq-account" style="${ss}">${aO.map(o=>`<option value="${o.v}">${o.l}</option>`).join('')}</select>
-      <label style="font-size:11px;font-weight:600;color:var(--text2);display:block;margin-bottom:4px">Fecha</label>
-      <input type="date" id="fq-date" value="${todayISO}" style="${ss}" onchange="syncFabDate()">
-      <label style="font-size:11px;font-weight:600;color:var(--text2);display:block;margin-bottom:4px">Mes contable</label>
-      ${mSel}`;
+      <input type="date" id="fq-date" value="${todayISO}" style="${ss}">`;
   } else {
-    document.getElementById('fab-modal-title').textContent='🔴 Nuevo Gasto';
+    document.getElementById('fab-modal-title').textContent='🔴 Gasto rápido';
     document.getElementById('fab-modal-save').className='btn btn-red btn-sm';
     document.getElementById('fab-modal-body').innerHTML=`
-      ${closedWarn}
-      <select id="fq-cat" style="${ss}" onchange="syncFabCat()">${cO.map(o=>`<option value="${o.v}">${o.l}</option>`).join('')}</select>
+      <select id="fq-cat" style="${ss}">${cO.map(o=>`<option value="${o.v}">${o.l}</option>`).join('')}</select>
       <select id="fq-source" style="${ss}">${sO.map(o=>`<option value="${o.v}">${o.l}</option>`).join('')}</select>
       <select id="fq-account" style="${ss}">${aO.map(o=>`<option value="${o.v}">${o.l}</option>`).join('')}</select>
-      <input type="number" id="fq-amount" placeholder="Monto (Gs.)" style="${ss}" inputmode="numeric">
+      <input type="number" id="fq-amount" placeholder="Monto (Gs.)" style="${ss}">
       <input type="text" id="fq-desc" placeholder="Descripción (opcional)" style="${ss}">
-      <label style="font-size:11px;font-weight:600;color:var(--text2);display:block;margin-bottom:4px">Fecha</label>
-      <input type="date" id="fq-date" value="${todayISO}" style="${ss}" onchange="syncFabDate()">
-      <label style="font-size:11px;font-weight:600;color:var(--text2);display:block;margin-bottom:4px">Mes contable</label>
-      ${mSel}`;
-    // Apply category default source after render
-    setTimeout(syncFabCat,50);
+      <input type="date" id="fq-date" value="${todayISO}" style="${ss}">`;
   }
   document.getElementById('fab-modal-bg').classList.add('open');
-  // Focus amount
-  setTimeout(()=>{const a=document.getElementById('fq-amount');if(a)a.focus();},100);
-};
-
-// Sincronizar fecha → mes contable
-window.syncFabDate=()=>{
-  const dv=document.getElementById('fq-date')?.value;
-  if(!dv)return;
-  const d=new Date(dv+'T12:00:00');
-  const ms=document.getElementById('fq-month');
-  const ys=document.getElementById('fq-year');
-  if(ms)ms.value=d.getMonth();
-  if(ys)ys.value=d.getFullYear();
-};
-
-// Sincronizar fuente por defecto al cambiar categoría (gasto)
-window.syncFabCat=()=>{
-  const catId=document.getElementById('fq-cat')?.value;
-  if(!catId)return;
-  const c=cats().find(x=>x.id===catId);
-  if(c?.defaultSource){const s=document.getElementById('fq-source');if(s)s.value=c.defaultSource;}
 };
 window.closeFabModal=(e)=>{
   if(!e||e.target.id==='fab-modal-bg') document.getElementById('fab-modal-bg').classList.remove('open');
 };
 window.saveFabModal=()=>{
-  if(!dbSynced){alert('Esperá un momento, la app está sincronizando datos...');return;}
   const amt=parseFloat(document.getElementById('fq-amount').value);if(!amt)return alert('Ingresá un monto');
   const acc=document.getElementById('fq-account').value;
   const dateVal=document.getElementById('fq-date').value;
   const dateObj=dateVal?new Date(dateVal+'T12:00:00'):new Date();
-  // Usar siempre el selector de mes contable del formulario
-  const month=+(document.getElementById('fq-month')?.value??dateObj.getMonth());
-  const year=+(document.getElementById('fq-year')?.value??dateObj.getFullYear());
-  if(isClosed(month,year)){alert(`${MONTHS[month]} ${year} está cerrado. Cambiá el mes contable en el formulario.`);return;}
+  const month=filterMonth,year=filterYear;
+  if(isClosed(month,year)){alert(`${MONTHS[month]} ${year} está cerrado. Cambiá el mes activo desde la barra superior.`);return;}
   if(fabType==='ingreso'){
     push(ref(db,'/incomes'),{source:document.getElementById('fq-source').value,account:acc,amount:amt,description:document.getElementById('fq-desc').value,month,year,date:dateObj.toISOString()});
     set(ref(db,`/accountBalances/${acc}`),(state.accountBalances[acc]||0)+amt);
@@ -1525,34 +1543,17 @@ function renderCRM(){
   const clients=crmClients();
   const totalEsperado=clients.reduce((s,c)=>s+(c.paquete||0),0);
 
-  // Mapa de pagos por cliente
+  // Construir mapa de pagos por cliente UNA SOLA VEZ — evita doble filtrado inconsistente
+  // Un ingreso pertenece a un cliente si tiene crmClientKey, o si no tiene key asignada y el nombre matchea
   const pagosPorCliente={};
   clients.forEach(c=>pagosPorCliente[c._key]=[]);
-  const sinAsignar=[];
-
-  // Helper: nombre parcial flexible — cualquier palabra del nombre del cliente que aparezca en la descripción
-  const matchNombre=(desc,clientName)=>{
-    if(!desc||!clientName)return false;
-    const d=desc.toLowerCase().trim();
-    const words=clientName.toLowerCase().split(/\s+/).filter(w=>w.length>2);
-    // Coincide si al menos 2 palabras del nombre están en la descripción, o si es nombre corto con 1 palabra
-    if(words.length<=1)return d.includes(words[0]||'');
-    return words.filter(w=>d.includes(w)).length>=Math.min(2,words.length);
-  };
-
   filemInc.forEach(inc=>{
     if(inc.crmClientKey&&pagosPorCliente[inc.crmClientKey]!==undefined){
-      // Cobro registrado desde el CRM — asignación directa
       pagosPorCliente[inc.crmClientKey].push(inc);
     } else if(!inc.crmClientKey){
-      // Fallback mejorado: busca por nombre flexible
-      const match=clients.find(c=>matchNombre(inc.description,c.name));
-      if(match){
-        pagosPorCliente[match._key].push(inc);
-      } else {
-        // No se pudo asignar a ningún cliente
-        sinAsignar.push(inc);
-      }
+      // fallback por nombre para cobros viejos sin crmClientKey
+      const match=clients.find(c=>(inc.description||'').toLowerCase().includes((c.name||'').toLowerCase()));
+      if(match) pagosPorCliente[match._key].push(inc);
     }
   });
 
@@ -1569,20 +1570,14 @@ function renderCRM(){
     const statusColor=status==='pagado'?'var(--green-lite)':status==='parcial'?'#fbbf24':'#e2e8f0';
     const statusLabel=status==='pagado'?'✓ Pagado':status==='parcial'?'⚡ Parcial':'⏳ Pendiente';
 
-    // Alerta de vencimiento — solo si no pagó Y el vencimiento cae este mes/año filtrado
+    // Alerta de vencimiento (solo si no está pagado)
     let venceAlert='';
     if(status!=='pagado'&&client.venceDia){
-      const isCurrentMonth=(filterMonth===now.getMonth()&&filterYear===now.getFullYear());
-      if(isCurrentMonth){
-        const today=now.getDate();
-        const diasRestantes=client.venceDia-today;
-        // Solo alertar si el vencimiento AÚN NO pasó o es hoy (no si ya pasó sin pagar)
-        // Si ya pasó, simplemente está pendiente — no "vencido" porque el ciclo es mensual
-        if(diasRestantes===0) venceAlert=`<div class="crm-vence vence-hoy">🔔 Vence hoy</div>`;
-        else if(diasRestantes>0&&diasRestantes<=3) venceAlert=`<div class="crm-vence vence-pronto">⏰ Vence en ${diasRestantes} día${diasRestantes!==1?'s':''}</div>`;
-        // Si diasRestantes < 0: el día ya pasó este mes y no pagó → mostrar como pendiente sin alerta de "vencido"
-        // porque el vencimiento es mensual y puede pagar con retraso
-      }
+      const today=now.getDate();
+      const diasRestantes=client.venceDia-today;
+      if(diasRestantes<0) venceAlert=`<div class="crm-vence vence-atrasado">⚠️ Vencido hace ${Math.abs(diasRestantes)} día${Math.abs(diasRestantes)!==1?'s':''}</div>`;
+      else if(diasRestantes===0) venceAlert=`<div class="crm-vence vence-hoy">🔔 Vence hoy</div>`;
+      else if(diasRestantes<=3) venceAlert=`<div class="crm-vence vence-pronto">⏰ Vence en ${diasRestantes} día${diasRestantes!==1?'s':''}</div>`;
     }
 
     return `<div class="crm-client" style="border-left:4px solid ${statusColor}">
@@ -1633,26 +1628,11 @@ function renderCRM(){
       </table>
     </div>`:'';
 
-  // Cobros sin asignar
-  const sinAsignarHTML=sinAsignar.length?`
-    <div style="background:#fff8e1;border:1px solid #fde68a;border-radius:14px;padding:14px;margin-bottom:12px">
-      <div style="font-size:12px;font-weight:700;color:#b45309;margin-bottom:10px;text-transform:uppercase;letter-spacing:.6px">⚠️ Cobros sin asignar a cliente</div>
-      <div style="font-size:11px;color:#92400e;margin-bottom:10px">Estos ingresos de Filem no pudieron vincularse a ningún cliente. Usá el botón 💰 Registrar cobro dentro de cada cliente para asociarlos correctamente.</div>
-      ${sinAsignar.map(i=>`
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #fde68a;font-size:13px">
-          <div>
-            <div style="font-weight:600">${i.description||'Sin descripción'}</div>
-            <div style="font-size:11px;color:#b45309">${i.date?new Date(i.date).toLocaleDateString('es-PY'):''}</div>
-          </div>
-          <div style="font-weight:700;color:var(--green-mid)">${fmt(i.amount)}</div>
-        </div>`).join('')}
-    </div>`:'';
-
   document.getElementById('crm-total-cobrado').textContent=fmt(totalCobrado);
   document.getElementById('crm-total-esperado').textContent=fmt(totalEsperado);
   document.getElementById('crm-clientes-ok').textContent=`${clientesOk}/${clients.length}`;
   document.getElementById('crm-clients-list').innerHTML=clients.length
-    ? sinAsignarHTML+clientsHTML+resumenHTML
+    ? clientsHTML+resumenHTML
     : `<div class="empty">No hay clientes. Agregá uno con el botón de arriba.</div>`;
 }
 
@@ -1787,39 +1767,250 @@ window.generarComparativo=()=>{
   `;
 };
 
-// Reporte por fecha desde Más tab
-window.generarReporteFromMas=()=>{
-  const dateVal=document.getElementById('rep-date2').value;
-  if(!dateVal){alert('Elegí una fecha');return;}
-  // Reusar la lógica existente pero output en rep-output2
-  const repDate=new Date(dateVal+'T23:59:59');
-  const repDateStart=new Date(dateVal+'T00:00:00');
-  const repDateStr=repDate.toLocaleDateString('es-PY');
-  const srcList=sources(),catList=cats(),accList=accs();
-  const fi=incList().filter(i=>i.date&&new Date(i.date)>=repDateStart&&new Date(i.date)<=repDate);
-  const fe=expList().filter(e=>e.date&&new Date(e.date)>=repDateStart&&new Date(e.date)<=repDate);
-  const balAtDate={};
-  accList.forEach(a=>{balAtDate[a.id]=state.accountBalances[a.id]||0;});
-  incList().filter(i=>i.date&&new Date(i.date)>repDate).forEach(i=>{if(balAtDate[i.account]!==undefined)balAtDate[i.account]-=i.amount;});
-  expList().filter(e=>e.date&&new Date(e.date)>repDate).forEach(e=>{if(balAtDate[e.account]!==undefined)balAtDate[e.account]+=e.amount;});
-  trList().filter(t=>t.date&&new Date(t.date)>repDate).forEach(t=>{if(balAtDate[t.from]!==undefined)balAtDate[t.from]+=t.amount;if(balAtDate[t.to]!==undefined)balAtDate[t.to]-=t.amount;});
-  txList().filter(t=>t.date&&new Date(t.date)>repDate).forEach(t=>{if(balAtDate[t.account]!==undefined)balAtDate[t.account]-=t.delta;});
-  const hecA=accList.filter(a=>a.owner==='Héctor'),romA=accList.filter(a=>a.owner==='Romina');
-  const totHec=hecA.reduce((s,a)=>s+(balAtDate[a.id]||0),0),totRom=romA.reduce((s,a)=>s+(balAtDate[a.id]||0),0);
-  const accCard=a=>`<div class="rep-acc-card" style="border-left-color:${a.color}"><div class="rac-label">${a.icon} ${a.label}</div><div class="rac-val" style="color:${(balAtDate[a.id]||0)>=0?'var(--green-mid)':'var(--danger)'}">${fmt(balAtDate[a.id])}</div></div>`;
-  document.getElementById('rep-output2').innerHTML=`
-    <div style="font-size:13px;color:var(--text2);margin-bottom:12px;font-weight:600">📅 Saldos al ${repDateStr}</div>
-    <div class="rep-totals">
-      <div class="rep-total-box"><div class="rtb-label">Total</div><div class="rtb-val">${fmt(totHec+totRom)}</div></div>
-      <div class="rep-total-box neutral"><div class="rtb-label">Héctor</div><div class="rtb-val">${fmt(totHec)}</div></div>
-      <div class="rep-total-box neutral" style="background:var(--green-lite)"><div class="rtb-label">Romina</div><div class="rtb-val">${fmt(totRom)}</div></div>
-    </div>
-    <div class="rep-section"><h3>Héctor</h3><div class="rep-acc-grid">${hecA.map(accCard).join('')}</div></div>
-    <div class="rep-section"><h3>Romina</h3><div class="rep-acc-grid">${romA.map(accCard).join('')}</div></div>
-    ${fi.length||fe.length?`<div style="font-size:12px;color:var(--text3);margin-top:4px;text-align:center">${fi.length} ingreso(s) · ${fe.length} gasto(s) registrado(s) ese día</div>`:'<div class="empty">Sin movimientos registrados ese día</div>'}
-    <button class="btn btn-green" style="margin-top:12px" onclick="exportReportePDF('${dateVal}')">🖨️ Exportar PDF</button>
-  `;
+// ── REPORTE PERSONALIZADO ──
+let repTipos={ingresos:true,gastos:true,cuentas:true,resumen:true};
+let repPeriod='mes';
+
+window.setPeriod=(tipo,el)=>{
+  repPeriod=tipo;
+  document.querySelectorAll('#rep-period-toggles .rep-toggle').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('rep-period-mes').style.display=tipo==='mes'?'':'none';
+  document.getElementById('rep-period-rango').style.display=tipo==='rango'?'':'none';
 };
+
+window.toggleRepTipo=(tipo,el)=>{
+  repTipos[tipo]=!repTipos[tipo];
+  el.classList.toggle('on',repTipos[tipo]);
+};
+
+function initReportBuilder(){
+  const mO=MONTHS.map((m,i)=>({v:i,l:m}));
+  const yO=[2024,2025,2026,2027].map(y=>({v:y,l:y}));
+  const rm=document.getElementById('rep-m');
+  const ry=document.getElementById('rep-y');
+  if(!rm||rm.options.length>0)return; // already inited
+  rm.innerHTML=mO.map(o=>`<option value="${o.v}">${o.l}</option>`).join('');
+  rm.value=filterMonth;
+  ry.innerHTML=yO.map(o=>`<option value="${o.v}">${o.l}</option>`).join('');
+  ry.value=filterYear;
+  // Populate filter selects
+  const rf=document.getElementById('rep-fuente');
+  const rc=document.getElementById('rep-categoria');
+  const rcu=document.getElementById('rep-cuenta');
+  sources().forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=`${s.icon} ${s.label}`;rf.appendChild(o);});
+  cats().forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=`${c.icon} ${c.label}`;rc.appendChild(o);});
+  accs().forEach(a=>{const o=document.createElement('option');o.value=a.id;o.textContent=`${a.icon} ${a.owner} — ${a.label}`;rcu.appendChild(o);});
+  // Default dates for range
+  const today=new Date().toISOString().split('T')[0];
+  const firstDay=new Date(filterYear,filterMonth,1).toISOString().split('T')[0];
+  document.getElementById('rep-desde').value=firstDay;
+  document.getElementById('rep-hasta').value=today;
+}
+
+window.generarReporteCustom=()=>{
+  // ── Determinar período ──
+  let fi,fe,label;
+  if(repPeriod==='mes'){
+    const m=+document.getElementById('rep-m').value;
+    const y=+document.getElementById('rep-y').value;
+    fi=incList().filter(i=>i.month===m&&i.year===y);
+    fe=expList().filter(e=>e.month===m&&e.year===y);
+    label=`${MONTHS[m]} ${y}`;
+  } else {
+    const desde=new Date(document.getElementById('rep-desde').value+'T00:00:00');
+    const hasta=new Date(document.getElementById('rep-hasta').value+'T23:59:59');
+    if(isNaN(desde)||isNaN(hasta)){alert('Elegí fechas válidas');return;}
+    fi=incList().filter(i=>i.date&&new Date(i.date)>=desde&&new Date(i.date)<=hasta);
+    fe=expList().filter(e=>e.date&&new Date(e.date)>=desde&&new Date(e.date)<=hasta);
+    label=`${desde.toLocaleDateString('es-PY')} al ${hasta.toLocaleDateString('es-PY')}`;
+  }
+
+  // ── Aplicar filtros ──
+  const persona=document.getElementById('rep-persona').value;
+  const fuente=document.getElementById('rep-fuente').value;
+  const catFil=document.getElementById('rep-categoria').value;
+  const cuentaFil=document.getElementById('rep-cuenta').value;
+
+  const accList=accs();
+  // Filtrar cuentas por persona
+  const cuentasPersona=persona==='todos'?accList:accList.filter(a=>a.owner===persona);
+  const cuentasIds=new Set(cuentasPersona.map(a=>a.id));
+  if(persona!=='todos'||cuentaFil!=='todas'){
+    fi=fi.filter(i=>(persona==='todos'||cuentasIds.has(i.account))&&(cuentaFil==='todas'||i.account===cuentaFil));
+    fe=fe.filter(e=>(persona==='todos'||cuentasIds.has(e.account))&&(cuentaFil==='todas'||e.account===cuentaFil));
+  }
+  if(fuente!=='todas') fi=fi.filter(i=>i.source===fuente);
+  if(catFil!=='todas') fe=fe.filter(e=>e.category===catFil);
+
+  const srcList=sources();
+  const catList=cats();
+  const totalInc=fi.reduce((s,i)=>s+i.amount,0);
+  const totalExp=fe.reduce((s,e)=>s+e.amount,0);
+  const bal=totalInc-totalExp;
+
+  let html='';
+
+  // ── RESUMEN ──
+  if(repTipos.resumen){
+    html+=`<div class="rep-section-card">
+      <h3>📊 Resumen <span>${label}</span></h3>
+      <div class="rep-summary-boxes">
+        <div class="rep-sum-box" style="background:var(--green-mid)"><div class="rsb-lbl">Ingresos</div><div class="rsb-val">${fmt(totalInc)}</div></div>
+        <div class="rep-sum-box" style="background:var(--danger)"><div class="rsb-lbl">Gastos</div><div class="rsb-val">${fmt(totalExp)}</div></div>
+        <div class="rep-sum-box" style="background:${bal>=0?'var(--green)':'#b45309'}"><div class="rsb-lbl">${bal>=0?'Superávit':'Déficit'}</div><div class="rsb-val">${fmt(Math.abs(bal))}</div></div>
+      </div>
+    </div>`;
+  }
+
+  // ── INGRESOS ──
+  if(repTipos.ingresos&&fi.length){
+    // Agrupar por fuente
+    const porFuente={};
+    fi.forEach(i=>{if(!porFuente[i.source])porFuente[i.source]=[];porFuente[i.source].push(i);});
+    const fiRows=Object.entries(porFuente).map(([sid,items])=>{
+      const s=srcList.find(x=>x.id===sid)||{icon:'',label:sid,color:'#ccc'};
+      const tot=items.reduce((a,i)=>a+i.amount,0);
+      const detalle=items.sort((a,b)=>new Date(b.date)-new Date(a.date)).map(i=>{
+        const a=accList.find(x=>x.id===i.account)||{label:i.account,owner:''};
+        const d=i.date?new Date(i.date).toLocaleDateString('es-PY'):'';
+        return `<div class="rep-row-item" style="padding-left:12px;border-left:2px solid ${s.color}33">
+          <div><div class="rri-main" style="font-size:12px">${i.description||s.label}</div><div class="rri-sub">${a.owner} ${a.label} · ${d}</div></div>
+          <div class="rri-amt" style="color:var(--green-mid);font-size:12px">+${fmt(i.amount)}</div>
+        </div>`;
+      }).join('');
+      return `<div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <span style="font-size:13px;font-weight:700;color:${s.color}">${s.icon} ${s.label}</span>
+          <span style="font-size:13px;font-weight:700;color:var(--green-mid)">+${fmt(tot)}</span>
+        </div>
+        ${detalle}
+      </div>`;
+    }).join('<hr style="border:none;border-top:1px solid var(--border);margin:8px 0">');
+    html+=`<div class="rep-section-card">
+      <h3>📈 Ingresos <span style="color:var(--green-mid)">+${fmt(totalInc)}</span></h3>
+      ${fiRows}
+    </div>`;
+  } else if(repTipos.ingresos){
+    html+=`<div class="rep-section-card"><h3>📈 Ingresos</h3><div class="empty">Sin ingresos en este período</div></div>`;
+  }
+
+  // ── GASTOS ──
+  if(repTipos.gastos&&fe.length){
+    // Agrupar por categoría
+    const porCat={};
+    fe.forEach(e=>{if(!porCat[e.category])porCat[e.category]=[];porCat[e.category].push(e);});
+    const feRows=Object.entries(porCat).map(([cid,items])=>{
+      const c=catList.find(x=>x.id===cid)||{icon:'',label:cid,color:'#ccc'};
+      const tot=items.reduce((a,e)=>a+e.amount,0);
+      const pct=totalExp>0?Math.round(tot/totalExp*100):0;
+      const detalle=items.sort((a,b)=>new Date(b.date)-new Date(a.date)).map(e=>{
+        const a=accList.find(x=>x.id===e.account)||{label:e.account,owner:''};
+        const s=srcList.find(x=>x.id===e.source)||{label:e.source};
+        const d=e.date?new Date(e.date).toLocaleDateString('es-PY'):'';
+        return `<div class="rep-row-item" style="padding-left:12px;border-left:2px solid ${c.color}33">
+          <div><div class="rri-main" style="font-size:12px">${e.description||c.label}</div><div class="rri-sub">${s.label} · ${a.owner} ${a.label} · ${d}</div></div>
+          <div class="rri-amt" style="color:var(--danger);font-size:12px">-${fmt(e.amount)}</div>
+        </div>`;
+      }).join('');
+      return `<div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <span style="font-size:13px;font-weight:700;color:${c.color}">${c.icon} ${c.label}</span>
+          <span style="font-size:13px;font-weight:700;color:var(--danger)">-${fmt(tot)}</span>
+        </div>
+        <div style="background:var(--surface2);border-radius:4px;height:5px;margin-bottom:6px"><div style="width:${pct}%;height:100%;border-radius:4px;background:${c.color}"></div></div>
+        ${detalle}
+      </div>`;
+    }).join('<hr style="border:none;border-top:1px solid var(--border);margin:8px 0">');
+    html+=`<div class="rep-section-card">
+      <h3>📉 Gastos <span style="color:var(--danger)">-${fmt(totalExp)}</span></h3>
+      ${feRows}
+    </div>`;
+  } else if(repTipos.gastos){
+    html+=`<div class="rep-section-card"><h3>📉 Gastos</h3><div class="empty">Sin gastos en este período</div></div>`;
+  }
+
+  // ── CUENTAS ──
+  if(repTipos.cuentas){
+    // Si es período con fechas, mostrar saldos calculados a la fecha hasta
+    let balAtDate={};
+    if(repPeriod==='rango'){
+      const hasta=new Date(document.getElementById('rep-hasta').value+'T23:59:59');
+      accList.forEach(a=>{balAtDate[a.id]=state.accountBalances[a.id]||0;});
+      incList().filter(i=>i.date&&new Date(i.date)>hasta).forEach(i=>{if(balAtDate[i.account]!==undefined)balAtDate[i.account]-=i.amount;});
+      expList().filter(e=>e.date&&new Date(e.date)>hasta).forEach(e=>{if(balAtDate[e.account]!==undefined)balAtDate[e.account]+=e.amount;});
+      trList().filter(t=>t.date&&new Date(t.date)>hasta).forEach(t=>{if(balAtDate[t.from]!==undefined)balAtDate[t.from]+=t.amount;if(balAtDate[t.to]!==undefined)balAtDate[t.to]-=t.amount;});
+    } else {
+      accList.forEach(a=>{balAtDate[a.id]=state.accountBalances[a.id]||0;});
+    }
+
+    const cuentasFiltradas=cuentasPersona.filter(a=>cuentaFil==='todas'||a.id===cuentaFil);
+    const hecAF=cuentasFiltradas.filter(a=>a.owner==='Héctor');
+    const romAF=cuentasFiltradas.filter(a=>a.owner==='Romina');
+    const totHF=hecAF.reduce((s,a)=>s+(balAtDate[a.id]||0),0);
+    const totRF=romAF.reduce((s,a)=>s+(balAtDate[a.id]||0),0);
+
+    const accRows=(list)=>list.map(a=>`
+      <div class="rep-acc-row">
+        <div><div class="rar-name">${a.icon} ${a.label}</div><div class="rar-owner">${a.owner}</div></div>
+        <div style="font-weight:700;font-size:14px;color:${(balAtDate[a.id]||0)>=0?'var(--green-mid)':'var(--danger)'}">${fmt(balAtDate[a.id])}</div>
+      </div>`).join('');
+
+    let cuentasHTML='';
+    if(hecAF.length) cuentasHTML+=`<div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Héctor · ${fmt(totHF)}</div>${accRows(hecAF)}`;
+    if(romAF.length) cuentasHTML+=`<div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin:10px 0 6px">Romina · ${fmt(totRF)}</div>${accRows(romAF)}`;
+
+    html+=`<div class="rep-section-card">
+      <h3>🏦 Cuentas <span>${fmt(totHF+totRF)}</span></h3>
+      ${cuentasHTML||'<div class="empty">Sin cuentas</div>'}
+    </div>`;
+  }
+
+  if(!html) html='<div class="empty">Seleccioná al menos una sección para mostrar</div>';
+
+  // Botón exportar PDF
+  html+=`<button class="btn btn-green" style="margin-top:4px" onclick="exportReporteCustomPDF()">🖨️ Exportar como PDF</button>`;
+
+  document.getElementById('rep-custom-output').innerHTML=html;
+  // Scroll al resultado
+  document.getElementById('rep-custom-output').scrollIntoView({behavior:'smooth',block:'start'});
+};
+
+// Guardar parámetros para PDF
+window.exportReporteCustomPDF=()=>{
+  // Capturar el HTML del reporte generado (sin el botón) y abrirlo en nueva ventana
+  const out=document.getElementById('rep-custom-output');
+  const bodyHTML=out.innerHTML.replace(/<button[^>]*exportReporteCustomPDF[^>]*>.*?<\/button>/,'');
+  const w=window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Reporte Mis Finanzas</title>
+  <style>
+    body{font-family:Arial,sans-serif;padding:24px;color:#1a2e22;max-width:700px;margin:0 auto}
+    .rep-section-card{background:#f9fafb;border-radius:10px;padding:16px;margin-bottom:16px;border:1px solid #dde8e1}
+    .rep-section-card h3{font-size:13px;font-weight:700;color:#5a7a66;text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px;display:flex;justify-content:space-between;border-bottom:1px solid #dde8e1;padding-bottom:8px}
+    .rep-summary-boxes{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+    .rep-sum-box{flex:1;min-width:100px;border-radius:8px;padding:10px 14px;color:#fff}
+    .rsb-lbl{font-size:10px;opacity:.8}.rsb-val{font-size:15px;font-weight:700;margin-top:2px}
+    .rep-row-item{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #eee;font-size:12px}
+    .rep-row-item:last-child{border-bottom:none}
+    .rri-main{font-weight:600}.rri-sub{font-size:10px;color:#8eab97;margin-top:1px}
+    .rri-amt{font-weight:700;margin-left:8px;flex-shrink:0}
+    .rep-acc-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;font-size:13px}
+    .rar-name{font-weight:600}.rar-owner{font-size:11px;color:#8eab97}
+    .empty{color:#8eab97;font-size:13px;text-align:center;padding:12px 0}
+    hr{border:none;border-top:1px solid #eee;margin:8px 0}
+    @media print{button{display:none!important}}
+  </style></head><body>
+  <h2 style="color:#1a4731;margin-bottom:4px">💰 Reporte Mis Finanzas</h2>
+  <p style="color:#8eab97;font-size:12px;margin-bottom:16px">Generado el ${new Date().toLocaleDateString('es-PY')}</p>
+  ${bodyHTML}
+  <br><div style="display:flex;gap:10px">
+    <button onclick="window.close()" style="background:#f0f4f1;color:#1a4731;border:1px solid #dde8e1;padding:10px 20px;border-radius:8px;font-size:13px;cursor:pointer;font-weight:600">← Volver</button>
+    <button onclick="window.print()" style="background:#1a4731;color:#fff;border:none;padding:10px 20px;border-radius:8px;font-size:13px;cursor:pointer;font-weight:600">🖨️ Imprimir / PDF</button>
+  </div>
+  </body></html>`);
+  w.document.close();
+};
+
 
 window.showTab=(id,btn)=>{
   closeFab();
@@ -1832,7 +2023,7 @@ window.showTab=(id,btn)=>{
   const map={dashboard:'bn-dashboard',filem:'bn-filem',cuentas:'bn-cuentas',mas:'bn-mas'};
   if(map[id]){const el=document.getElementById(map[id]);if(el)el.classList.add('active');}
   if(id==='filem') renderCRM();
-  if(id==='mas') initComparativo();
+  if(id==='mas'){initComparativo();initReportBuilder();}
 };
 
 initMonthYear();
