@@ -788,13 +788,17 @@ window.updateBalance=()=>{
 };
 
 window.doTransfer=()=>{
+  if(!dbSynced){alert('Esperá un momento, la app está sincronizando...');return;}
   const amt=parseFloat(document.getElementById('t-amount').value);if(!amt)return;
   const from=document.getElementById('t-from').value;
   const to=document.getElementById('t-to').value;
   if(from===to){alert('Las cuentas deben ser distintas');return;}
   const desc=document.getElementById('t-desc').value||'Transferencia';
-  set(ref(db,`/accountBalances/${from}`),(state.accountBalances[from]||0)-amt);
-  set(ref(db,`/accountBalances/${to}`),(state.accountBalances[to]||0)+amt);
+  // Snapshot ambos saldos ANTES de escribir para evitar race condition
+  const balFrom=state.accountBalances[from]||0;
+  const balTo=state.accountBalances[to]||0;
+  set(ref(db,`/accountBalances/${from}`),balFrom-amt);
+  set(ref(db,`/accountBalances/${to}`),balTo+amt);
   push(ref(db,'/transfers'),{from,to,amount:amt,description:desc,date:new Date().toISOString()});
   document.getElementById('t-amount').value='';document.getElementById('t-desc').value='';
 };
@@ -815,8 +819,11 @@ window.deleteExpense=key=>{
 };
 window.deleteTransfer=key=>{
   const item=state.transfers[key];if(!item||!confirm('¿Revertir esta transferencia?'))return;
-  set(ref(db,`/accountBalances/${item.from}`),(state.accountBalances[item.from]||0)+item.amount);
-  set(ref(db,`/accountBalances/${item.to}`),(state.accountBalances[item.to]||0)-item.amount);
+  // Snapshot ambos saldos antes de revertir
+  const balFrom=state.accountBalances[item.from]||0;
+  const balTo=state.accountBalances[item.to]||0;
+  set(ref(db,`/accountBalances/${item.from}`),balFrom+item.amount);
+  set(ref(db,`/accountBalances/${item.to}`),balTo-item.amount);
   remove(ref(db,`/transfers/${key}`));
 };
 window.deleteSource=id=>{if(confirm('¿Eliminar?'))remove(ref(db,`/sources/${id}`));};
