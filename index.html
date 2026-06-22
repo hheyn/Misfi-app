@@ -788,10 +788,10 @@ window.updateBalance=()=>{
 };
 
 window.doTransfer=()=>{
+  if(!dbSynced){alert('Esperá un momento, la app está sincronizando...');return;}
   const amt=parseFloat(document.getElementById('t-amount').value);if(!amt)return;
   const from=document.getElementById('t-from').value;
   const to=document.getElementById('t-to').value;
-  if(!from||!to){alert('Seleccioná las cuentas');return;}
   if(from===to){alert('Las cuentas deben ser distintas');return;}
   const desc=document.getElementById('t-desc').value||'Transferencia';
   // Snapshot ambos saldos ANTES de escribir para evitar race condition
@@ -2058,10 +2058,10 @@ onAuthStateChanged(auth,user=>{
 window.loginWithGoogle=async()=>{
   try{
     document.getElementById('login-btn').textContent='Conectando...';
+    // Redirect solo en iOS móvil (iPhone/iPad) — en desktop y macOS siempre popup
     const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||
-      (navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-    const isSafari=/^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-    if(isIOS||isSafari){
+      (navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1&&/Mobile/.test(navigator.userAgent));
+    if(isIOS){
       await signInWithRedirect(auth,provider);
     } else {
       await signInWithPopup(auth,provider);
